@@ -217,11 +217,13 @@ if __name__ == '__main__':
     headers = getter.get_all()
     safe_headers = getter.get_safe(headers)
 
-    print("Headers harvested from user's default browser:")
-    print('\n'.join(' {:>25}: {}'.format(k, v)
-                    for k, v in headers.items()))
-    print("\nSafe headers harvested from user's default browser:")
-    print('\n'.join(' {:>25}: {}'.format(k, v)
-                    for k, v in safe_headers.items()))
+    def prettyprint(title, headers):
+        print(title)
+        print('\n'.join(' {:>25}: {}'.format(k, v)
+                        for k, v in headers.items()))
+
+    prettyprint("Headers harvested from user's default browser:", headers)
+    prettyprint("\nSafe headers harvested from user's default browser:",
+                safe_headers)
 
 # vim: set sw=4 sts=4 expandtab :
