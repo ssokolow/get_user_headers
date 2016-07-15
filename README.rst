@@ -35,7 +35,7 @@ be overly aggressive in blocking user agents which merely do what the user
 could do anyway (ie. Ctrl+S on every chapter of a story so it can be converted
 into an eBook for reading on the go) but faster... *Even when they go out of
 their way to be kinder to the website than real browsers by not loading
-CSS/JavaScript/fonts/etc. and using a stricter caching policy.*
+images/CSS/JavaScript/fonts/etc. and using a stricter caching policy.*
 
 This module makes it easier for well-intentioned convenience bots to disguise
 themselves as the user's regular browser. When combined with a randomized
@@ -56,8 +56,8 @@ While I understand the need to prevent abusive behaviour, I don't take
 kindly to being forced into pointless drudgework because you were too busy to
 provide an RSS feed or an ePub exporter.
 
-Those are the two kinds of scrapers I write and I refuse to be locked into
-walled gardens like the iTunes store.
+Those are the two kinds of scrapers I write and, no, a walled garden with a
+proprietary client, such as Apple is offering, is not an acceptable substitute.
 
 If you do statistical analysis to identify likely bots, I'll do the labwork to
 develop a random delay function which is statistically indistinguishable from a
