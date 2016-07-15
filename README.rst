@@ -1,7 +1,31 @@
 Module for retrieving identifying headers from the user's preferred browser
 ===========================================================================
 
-Tested under Python 2.7 and 3.4.
+**Code Health:**
+
+.. image:: https://landscape.io/github/ssokolow/get_user_headers/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/ssokolow/get_user_headers/master
+   :alt: Code Health
+
+.. image:: https://scrutinizer-ci.com/g/ssokolow/get_user_headers/badges/quality-score.png?b=master
+   :target: https://scrutinizer-ci.com/g/ssokolow/get_user_headers/?branch=master
+   :alt: Scrutinizer Code Quality
+
+.. image:: https://api.codacy.com/project/badge/Grade/864ff2918f1e49f18ce656a3944ffbdf
+   :target: https://www.codacy.com/app/from_github/get_user_headers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ssokolow/get_user_headers&amp;utm_campaign=Badge_Grade
+   :alt: Codacy
+
+.. image:: https://codeclimate.com/github/ssokolow/get_user_headers/badges/gpa.svg
+   :target: https://codeclimate.com/github/ssokolow/get_user_headers
+   :alt: Code Climate
+
+**Project Status:**
+
+.. image:: https://badge.waffle.io/ssokolow/get_user_headers.svg?label=ready&title=Ready%20Tasks
+   :target: https://waffle.io/ssokolow/get_user_headers
+   :alt: 'Tasks ready to be worked on'
+
+Developed under Python 2.7 and 3.4.
 
 Rationale
 ---------
