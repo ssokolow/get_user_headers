@@ -82,7 +82,7 @@ def get_all_user_headers():
         server_address = ('', random.randrange(1024, 65535))
         try:
             httpd = http_server.HTTPServer(server_address,
-                                              UAProbingRequestHandler)
+                                           UAProbingRequestHandler)
         except socket.error as err:
             if err.errno != 98:
                 raise
