@@ -57,14 +57,17 @@ with the user's browser to bypass checks.
 Usage
 -----
 
-Call `get_safe_user_headers()` and use the returned headers as defaults for your
-HTTP requests.
+.. code:: python
+
+    headers = UserHeaderGetter().get_safe()
+
+...and then use the returned headers as defaults for your HTTP requests.
 
 The resulting headers should either have no effect on the returned content or
 should help to ensure that the bot sees the same content the user will see when
 visiting the page normally.
 
-Example Output:
+**Example Output:**
 
 .. code::
 
