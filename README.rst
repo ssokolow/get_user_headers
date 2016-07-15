@@ -84,14 +84,20 @@ Usage
 .. code:: python
 
     headers = UserHeaderGetter().get_safe()
+    # <configure HTTP client to use retrieved headers>
 
-...and then use the returned headers as defaults for your HTTP requests.
+    while next_page:
+       # Simulate human limits to foil statistical analysis
+       time.sleep(randomize_delay(base_delay))
+
+       # <retrieve another page>
+
 
 The resulting headers should either have no effect on the returned content or
 should help to ensure that the bot sees the same content the user will see when
 visiting the page normally.
 
-**Example Output:**
+**Example Headers Gathered:**
 
 .. code::
 

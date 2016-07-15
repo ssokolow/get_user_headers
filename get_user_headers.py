@@ -212,7 +212,32 @@ class UserHeaderGetter(object):
                 if set([key, key.title(), key.upper()]
                        ).intersection(self.safe_headers)}
 
-if __name__ == '__main__':
+def randomize_delay(base_delay=2):
+    """Return a time to wait in floating-point seconds to disguise automation.
+
+    This function currently uses the "base delay multiplied by a random value
+    between 0.5 and 1.5" algorithm described in the wget manual entry for the
+    --random-wait option.
+
+    However, it will probably eventually be enhanced with experimental evidence
+    to even more accurately match the statistical behaviour of a user manually
+    downloading pages using Ctrl+S.
+
+    The main things I need to determine are the type of statistical
+    distribution to use and mean time it takes a typical user on a typical
+    website to do the following once they get on a roll...
+
+    1. Wait for the page to load
+    2. Press Ctrl+S
+    3. Press Enter
+    4. Acquire and click the "next chapter/page/etc." button
+
+    (And then err on the slow side of average to further improve the chances
+    that humans will get driven away before the bots get caught reliably.)
+    """
+    return base_delay * random.uniform(0.5, 1.5)
+
+if __name__ == '__main__':  # pragma: no cover
     getter = UserHeaderGetter()
     headers = getter.get_all()
     safe_headers = getter.get_safe(headers)

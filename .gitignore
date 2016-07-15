@@ -2,3 +2,4 @@
 get_user_headers.egg-info
 build/
 dist/
+.coverage
