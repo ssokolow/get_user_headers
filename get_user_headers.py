@@ -9,7 +9,12 @@ __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
 import os, platform, subprocess
-import BaseHTTPServer, random, socket, webbrowser
+import random, socket, webbrowser
+
+try:
+    import http.server as http_server
+except ImportError:
+    import BaseHTTPServer as http_server
 
 # Headers which should either have no effect or a desired effect on returned
 # content. (So we should mimic them to look more like the user's browser)
@@ -25,10 +30,10 @@ def get_all_user_headers():
     """Harvest the request headers from the user's default browser."""
     harvested_headers = []
 
-    class UAProbingRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    class UAProbingRequestHandler(http_server.BaseHTTPRequestHandler):
         """Request handler for probing the browser's User-Agent string"""
 
-        placeholder_content = """<!DOCTYPE html>
+        placeholder_content = b"""<!DOCTYPE html>
             <html>
                 <head>
                     <title>Close Me</title>
@@ -76,9 +81,9 @@ def get_all_user_headers():
     while not port_found:
         server_address = ('', random.randrange(1024, 65535))
         try:
-            httpd = BaseHTTPServer.HTTPServer(server_address,
+            httpd = http_server.HTTPServer(server_address,
                                               UAProbingRequestHandler)
-        except socket.error, err:
+        except socket.error as err:
             if err.errno != 98:
                 raise
         else:
@@ -86,6 +91,8 @@ def get_all_user_headers():
 
     request_url = 'http://localhost:%d' % server_address[1]
 
+    # FIXME: Fire off the subprocess/webbrowser call in another thread to
+    #        minimize the chance of a race condition.
     if os.name == 'posix' and not platform.mac_ver()[0]:
         # The webbrowser module uses its own internal resolution order rather
         # than XDG preferences on Linux and, for some reason, its approach to
@@ -95,6 +102,8 @@ def get_all_user_headers():
     else:
         webbrowser.open_new_tab(request_url)
     httpd.handle_request()
+    httpd.server_close()  # Supposedly proper shutdown
+    httpd.socket.close()  # Required to silence Py3 unclosed socket warning
     return harvested_headers[0]
 
 def get_safe_user_headers(headers=None):
@@ -107,17 +116,17 @@ def get_safe_user_headers(headers=None):
     matchable_headers = {x.lower(): x for x in MIMIC_SAFE_HEADERS}
 
     return {key: value for key, value in headers.items()
-            if key in matchable_headers}
+            if key.lower() in matchable_headers}
 
 if __name__ == '__main__':
     headers = get_all_user_headers()
     safe_headers = get_safe_user_headers(headers)
 
     print("Headers harvested from user's default browser:")
-    print('\n'.join(' {:>25}:{}'.format(k, v)
+    print('\n'.join(' {:>25}: {}'.format(k, v)
                     for k, v in headers.items()))
     print("\nSAFE headers harvested from user's default browser:")
-    print('\n'.join(' {:>25}:{}'.format(k, v)
+    print('\n'.join(' {:>25}: {}'.format(k, v)
                     for k, v in safe_headers.items()))
 
 # vim: set sw=4 sts=4 expandtab :
