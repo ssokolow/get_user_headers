@@ -21,6 +21,7 @@ that requests from your (hopefully well-behaved) script don't stick out like
 sore thumbs for overzealous site admins to block without cause.""",
         author="Stephan Sokolow",
         author_email="http://www.ssokolow.com/ContactMe",  # No spam harvesting
+        url="https://github.com/ssokolow/get_user_headers",
         py_modules=['get_user_headers'],
 
         zip_safe=True
