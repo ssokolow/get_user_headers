@@ -132,15 +132,14 @@ class UserHeaderGetterTests(unittest.TestCase):
         # XXX: Do I want a less "DIY hack"-ish solution here?
         real_dt = datetime.datetime
         try:
-            class MockDateTime(object):
-                @staticmethod
-                def now():
-                    return real_dt.now() + (
+            class MockDateTime(real_dt):
+                """Helper to mock datetime.datetime.now() for testing"""
+                @classmethod
+                def now(cls, tz=None):  # pylint: disable=invalid-name
+                    """Mock for datetime.datetime.now()"""
+                    return real_dt.now(tz) + (
                         self.getter.cache_timeout +
                         datetime.timedelta(seconds=1))
-
-                def __getattr__(self, name):
-                    return getattr(real_dt, name)
 
             datetime.datetime = MockDateTime
             self.getter.clear_expired()
