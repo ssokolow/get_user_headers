@@ -1,4 +1,5 @@
 """Tests for get_user_headers.py"""
+# pylint: disable=protected-access
 
 from __future__ import (absolute_import, division, print_function,
                         with_statement, unicode_literals)
@@ -34,18 +35,18 @@ def check_timestamp_roundtrip(timestamp):
     assert dt_new == dt, '{} != {}'.format(dt_new, dt)
 
 def test_default_randomize_delay():
-    """1 <= randomize_delay() <= 1.5"""
+    """randomize_delay(): 1 <= randomize_delay() <= 1.5"""
     results = [get_user_headers.randomize_delay() for _ in range(0, 10000)]
     check_randomize_delay(get_user_headers.DEFAULT_BASE_DELAY, results)
 
 def test_nondefault_randomize_delay():
-    """2.5 <= randomize_delay(5) <= 7.5"""
+    """randomize_delay: 2.5 <= randomize_delay(5) <= 7.5"""
     base = 5
     results = [get_user_headers.randomize_delay(base) for _ in range(0, 10000)]
     check_randomize_delay(base, results)
 
 def test_randomize_delay_distrib():
-    """The standard deviation of randomize_delay is sufficiently high
+    """randomize_delay: Standard deviation is acceptable
 
     NOTE: This will need to be changed when I change the distribution of the
           random numbers to better simulate real human behaviour.
@@ -62,9 +63,9 @@ def test_randomize_delay_distrib():
 #       from actual human activity?
 
 def test_timestamp_epoch():
-    """_timestamp() round-trips correctly at the epoch"""
+    """_timestamp(): round-trips correctly at the epoch"""
     check_timestamp_roundtrip(0)
 
 def test_timestamp_recent():
-    """_timestamp() round-trips correctly at a typical time"""
+    """_timestamp(): round-trips correctly at a typical time"""
     check_timestamp_roundtrip(1468673923)

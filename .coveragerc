@@ -5,4 +5,7 @@ omit =
     */pypy3-?.?.?/*
     */lib-python/*
     */lib_pypy/*
-    */site-packages/nose/
+    */site-packages/nose/*
+    */dist-packages/nose/*
+[report]
+show_missing=true
