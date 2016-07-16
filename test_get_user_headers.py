@@ -90,7 +90,6 @@ class UserHeaderGetterTests(unittest.TestCase):
     def setUp(self):
         """Initialize test space on filesystem"""
         self.tempdir = tempfile.mkdtemp(prefix='nosetests-')
-        print(self.tempdir)
         self.getter = get_user_headers.UserHeaderGetter(self.tempdir)
 
     def tearDown(self):
@@ -156,9 +155,8 @@ class UserHeaderGetterTests(unittest.TestCase):
         results = self.getter.get_all(self.test_headers.copy())
         unwanted = [x.lower() for x in self.getter.unsafe_headers]
 
-        #TODO: Test the correctness of the case-insensitivity
         for key in results.keys():
-            self.assertNotIn(key.lower(), self.getter.unsafe_headers,
+            self.assertNotIn(key.lower(), unwanted,
                 "Unsafe headers in get_all() output")
 
         # Verify the filtering process didn't modify the key=value pairs
@@ -171,11 +169,9 @@ class UserHeaderGetterTests(unittest.TestCase):
         results = self.getter.get_safe(self.test_headers.copy())
         wanted = [x.lower() for x in self.getter.safe_headers]
 
-        #TODO: Test the correctness of the case-insensitivity
         for key in results.keys():
             self.assertIn(key.lower(), wanted,
                 "Unknown header in get_safe() output: {}".format(key))
-
 
         # Verify the filtering process didn't modify the key=value pairs
         for key, value in results.items():
