@@ -139,6 +139,9 @@ class UserHeaderGetterTests(unittest.TestCase):
                         self.getter.cache_timeout +
                         datetime.timedelta(seconds=1))
 
+                def __getattr__(self, name):
+                    return getattr(real_dt, name)
+
             datetime.datetime = MockDateTime
             self.getter.clear_expired()
         finally:
