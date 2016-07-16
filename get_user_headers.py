@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import datetime, os, platform, sqlite3, subprocess, sys, time
+import datetime, errno, os, platform, sqlite3, subprocess, sys, time
 import random, socket, webbrowser
 
 try:
@@ -79,8 +79,9 @@ class UserHeaderGetter(object):
         # Create the store if not already initialized
         try:
             os.makedirs(path)
-        except OSError:
-            pass  # Already exists (or access denied)
+        except OSError as err:
+            if not err.errno == errno.EEXIST:
+                raise
         self.cache_conn = sqlite3.connect(self.cache_path)
         self.cache_conn.executescript(self.cache_schema)
 
