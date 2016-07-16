@@ -16,5 +16,5 @@ after_success: coveralls
 sudo: false
 matrix:
     allow_failures:
-        - python: 3.2      # Broke when I added coverage
+        - python: "3.2"      # Broke when I added coverage
         - python: nightly
