@@ -22,6 +22,10 @@ if os.name == 'nt':  # pragma: no cover
                                                                CACHE_ROOT))
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
 
+# Reasonable guess at an average time for a human to cycle between
+# Ctrl+S, Enter, and clicking "next page", assuming blocking HTTP requests.
+DEFAULT_BASE_DELAY = 3  # seconds
+
 def _timestamp(dt_obj):
     """Convert a naive datetime into a POSIX timestamp.
 
@@ -215,7 +219,7 @@ class UserHeaderGetter(object):
                 if set([key, key.title(), key.upper()]
                        ).intersection(self.safe_headers)}
 
-def randomize_delay(base_delay=2):
+def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     """Return a time to wait in floating-point seconds to disguise automation.
 
     This function currently uses the "base delay multiplied by a random value

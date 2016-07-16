@@ -21,7 +21,10 @@ def check_randomize_stddev(base_delay, results):
     variance = sum((x - mean) ** 2 for x in results) / len(results)
     stddev = math.sqrt(variance)
 
-    assert (base_delay * 0.25) <= stddev <= (base_delay * 0.3), stddev
+    # TODO: Stop just guessing at the proper values for these thresholds
+    min_val, max_val = (base_delay * 0.25), (base_delay * 0.5)
+    assert min_val <= stddev <= max_val, (
+        "not({} <= {} >= {})".format(min_val, stddev, max_val))
 
 def check_timestamp_roundtrip(timestamp):
     dt = datetime.datetime.fromtimestamp(timestamp)
@@ -33,7 +36,7 @@ def check_timestamp_roundtrip(timestamp):
 def test_default_randomize_delay():
     """1 <= randomize_delay() <= 1.5"""
     results = [get_user_headers.randomize_delay() for _ in range(0, 10000)]
-    check_randomize_delay(2, results)
+    check_randomize_delay(get_user_headers.DEFAULT_BASE_DELAY, results)
 
 def test_nondefault_randomize_delay():
     """2.5 <= randomize_delay(5) <= 7.5"""
