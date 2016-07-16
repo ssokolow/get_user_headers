@@ -22,12 +22,16 @@ Module for retrieving identifying headers from the user's preferred browser
 **Unit Tests (In Development):**
 
 .. image:: https://travis-ci.org/ssokolow/get_user_headers.svg?branch=master
-    :target: https://travis-ci.org/ssokolow/get_user_headers
-    :alt: Unit Tests
+   :target: https://travis-ci.org/ssokolow/get_user_headers
+   :alt: Unit Tests
 
 .. image:: https://ci.appveyor.com/api/projects/status/1ds9dwd85vl94nsi?svg=true
-    :target: https://ci.appveyor.com/project/ssokolow/get-user-headers
-    :alt: Unit Tests (Windows)
+   :target: https://ci.appveyor.com/project/ssokolow/get-user-headers
+   :alt: Unit Tests (Windows)
+
+.. image:: https://coveralls.io/repos/github/ssokolow/get_user_headers/badge.svg?branch=master
+   :target: https://coveralls.io/github/ssokolow/get_user_headers?branch=master
+   :alt: Coverage
 
 **Project Status:**
 
