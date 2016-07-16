@@ -198,18 +198,20 @@ class UserHeaderGetter(object):
         httpd.handle_request()
         httpd.server_close()  # Supposedly proper shutdown
         httpd.socket.close()  # Required to silence Py3 unclosed socket warning
-        return {key: value for key, value in harvested_headers.pop().items()
-                if not set([key, key.title(), key.upper()]
-                           ).intersection(self.unsafe_headers)}
+        return harvested_headers.pop()
 
     def get_all(self, headers=None, skip_cache=False):
         """Get all headers which are safe to reuse (ie. not cookies)"""
-        headers = self._get_cache() if not skip_cache else None
+        if not headers:
+            headers = self._get_cache() if not skip_cache else {}
 
-        self.clear_expired()
-        headers = headers or self._get_uncached()
-        self._save_cache(headers)
-        return headers
+            self.clear_expired()
+            headers = headers or self._get_uncached()
+            self._save_cache(headers)
+
+        return {key: value for key, value in headers.items()
+                    if not set([key, key.title(), key.upper()]
+                               ).intersection(self.unsafe_headers)}
 
     def get_safe(self, headers=None, skip_cache=False):
         """Get all headers which should have no or beneficial effects."""
