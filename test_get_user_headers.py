@@ -83,6 +83,9 @@ class UserHeaderGetterTests(unittest.TestCase):
                     list(get_user_headers.UserHeaderGetter.safe_headers) +
                     list(get_user_headers.UserHeaderGetter.unsafe_headers) +
                     ['X-Testing-{}'.format(random.random())]}
+    test_headers.update({x.lower(): y for x, y in test_headers.items()})
+    test_headers.update({x.upper(): y for x, y in test_headers.items()})
+    test_headers.update({x.title(): y for x, y in test_headers.items()})
 
     def setUp(self):
         """Initialize test space on filesystem"""
@@ -146,10 +149,11 @@ class UserHeaderGetterTests(unittest.TestCase):
     def test_get_all_as_filter(self):
         """UserHeaderGetter: get_all() properly filters input"""
         results = self.getter.get_all(self.test_headers.copy())
+        unwanted = [x.lower() for x in self.getter.unsafe_headers]
 
         #TODO: Test the correctness of the case-insensitivity
         for key in results.keys():
-            self.assertNotIn(key, self.getter.unsafe_headers,
+            self.assertNotIn(key.lower(), self.getter.unsafe_headers,
                 "Unsafe headers in get_all() output")
 
         # Verify the filtering process didn't modify the key=value pairs
@@ -160,10 +164,12 @@ class UserHeaderGetterTests(unittest.TestCase):
     def test_get_safe_as_filter(self):
         """UserHeaderGetter: get_safe() properly filters input"""
         results = self.getter.get_safe(self.test_headers.copy())
+        wanted = [x.lower() for x in self.getter.safe_headers]
 
         #TODO: Test the correctness of the case-insensitivity
-        self.assertEqual(set(results.keys()), set(self.getter.safe_headers),
-            "Unknown headers in get_safe() output")
+        for key in results.keys():
+            self.assertIn(key.lower(), wanted,
+                "Unknown header in get_safe() output: {}".format(key))
 
 
         # Verify the filtering process didn't modify the key=value pairs
