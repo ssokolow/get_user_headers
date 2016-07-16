@@ -19,7 +19,7 @@ except ImportError:  # pragma: no cover
 OS_ERROR = OSError
 CACHE_ROOT = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 if os.name == 'nt':  # pragma: no cover
-    OS_ERROR = WindowsError
+    OS_ERROR = WindowsError  # pylint: disable=undefined-variable
     CACHE_ROOT = os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA',
                                                                CACHE_ROOT))
 
