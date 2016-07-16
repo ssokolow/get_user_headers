@@ -92,12 +92,31 @@ with the user's browser to bypass checks.
 
 .. _JDownloader: https://en.wikipedia.org/wiki/JDownloader
 
+Installation
+------------
+
+At present, I'm still waiting for a reply from the PyPI webmaster(s) on why the
+confirmation e-mails never even reach my spam filters, so you'll have to
+install directly from this repository.
+
+.. code:: bash
+
+    pip install git+https://github.com/ssokolow/get_user_headers.git
+
+(I haven't yet tagged the 0.1 release because I'd like to grow the unit test
+suite as much as possible before my inability to push to PyPI is resolved.)
+
 Usage
 -----
 
 .. code:: python
 
+    import time
+    from get_user_headers import UserHeaderGetter, randomize_delay
+
+    base_delay = 3  # Measure the average time a human takes in seconds
     headers = UserHeaderGetter().get_safe()
+
     # <configure HTTP client to use retrieved headers>
 
     while next_page:
