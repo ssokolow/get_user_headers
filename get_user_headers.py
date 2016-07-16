@@ -23,7 +23,10 @@ if os.name == 'nt':
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
 
 def _timestamp(dt_obj):
-    """Convert a naive datetime into a POSIX timestamp"""
+    """Convert a naive datetime into a POSIX timestamp.
+
+    NOTE: This will discard any millisecond time information.
+    """
     return time.mktime(dt_obj.timetuple())
 
 class UserHeaderGetter(object):

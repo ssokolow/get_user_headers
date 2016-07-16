@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import math
+import datetime, math
 
 import get_user_headers
 
@@ -22,6 +22,13 @@ def check_randomize_stddev(base_delay, results):
     stddev = math.sqrt(variance)
 
     assert (base_delay * 0.25) <= stddev <= (base_delay * 0.3), stddev
+
+def check_timestamp_roundtrip(timestamp):
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    ts = get_user_headers._timestamp(dt)
+    dt_new = datetime.datetime.fromtimestamp(ts)
+    assert ts == timestamp, '{} != {}'.format(ts, timestamp)
+    assert dt_new == dt, '{} != {}'.format(dt_new, dt)
 
 def test_default_randomize_delay():
     """1 <= randomize_delay() <= 1.5"""
@@ -50,3 +57,11 @@ def test_randomize_delay_distrib():
 # TODO: How difficult would it be to have a testcase which statistically
 #       analyzes the generated delays for similarity to test data collected
 #       from actual human activity?
+
+def test_timestamp_epoch():
+    """_timestamp() round-trips correctly at the epoch"""
+    check_timestamp_roundtrip(0)
+
+def test_timestamp_recent():
+    """_timestamp() round-trips correctly at a typical time"""
+    check_timestamp_roundtrip(1468673923)
