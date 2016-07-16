@@ -114,7 +114,8 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.assertTrue(os.path.exists(readonly))
 
         # os.makedirs failure
-        self.assertRaises(OSError, get_user_headers.UserHeaderGetter, nonexist)
+        self.assertRaises(get_user_headers.OS_ERROR,
+                          get_user_headers.UserHeaderGetter, nonexist)
 
         # sqlite3.connect failure
         self.assertRaises(sqlite3.OperationalError,

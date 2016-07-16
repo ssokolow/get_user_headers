@@ -16,10 +16,16 @@ try:
 except ImportError:  # pragma: no cover
     import BaseHTTPServer as http_server
 
+EEXIST = errno.EEXIST
+OS_ERROR = OSError
 CACHE_ROOT = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 if os.name == 'nt':  # pragma: no cover
+    EEXIST = 183
+    OS_ERROR = WindowsError
     CACHE_ROOT = os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA',
                                                                CACHE_ROOT))
+
+
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
 
 # Reasonable guess at an average time for a human to cycle between
@@ -79,8 +85,8 @@ class UserHeaderGetter(object):
         # Create the store if not already initialized
         try:
             os.makedirs(path)
-        except OSError as err:
-            if not err.errno == errno.EEXIST:
+        except OS_ERROR as err:
+            if not err.errno == EEXIST:
                 raise
         self.cache_conn = sqlite3.connect(self.cache_path)
         self.cache_conn.executescript(self.cache_schema)
