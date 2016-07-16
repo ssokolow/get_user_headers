@@ -25,6 +25,10 @@ Module for retrieving identifying headers from the user's preferred browser
     :target: https://travis-ci.org/ssokolow/get_user_headers
     :alt: Unit Tests
 
+.. image:: https://ci.appveyor.com/api/projects/status/1ds9dwd85vl94nsi?svg=true
+    :target: https://ci.appveyor.com/project/ssokolow/get-user-headers
+    :alt: Unit Tests (Windows)
+
 **Project Status:**
 
 .. image:: https://badge.waffle.io/ssokolow/get_user_headers.svg?label=ready&title=Ready%20Tasks
