@@ -13,11 +13,11 @@ import random, socket, webbrowser
 
 try:
     import http.server as http_server
-except ImportError:
+except ImportError:  # pragma: no cover
     import BaseHTTPServer as http_server
 
 CACHE_ROOT = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
-if os.name == 'nt':
+if os.name == 'nt':  # pragma: no cover
     CACHE_ROOT = os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA',
                                                                CACHE_ROOT))
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
