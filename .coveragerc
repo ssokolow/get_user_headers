@@ -1,6 +1,8 @@
 [run]
 omit =
     */python?.?/*
+    */pypy-?.?.?/*
+    */pypy3-?.?.?/*
     */lib-python/*
     */lib_pypy/*
     */site-packages/nose/
