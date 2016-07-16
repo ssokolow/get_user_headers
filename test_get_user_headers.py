@@ -95,6 +95,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     def tearDown(self):
         """Remove test space on filesystem"""
+        self.getter.cache_conn.close()
         shutil.rmtree(self.tempdir)
 
     # TODO: Tests still to be written:
