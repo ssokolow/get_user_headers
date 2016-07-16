@@ -28,11 +28,12 @@ def check_randomize_stddev(base_delay, results):
         "not({} <= {} >= {})".format(min_val, stddev, max_val))
 
 def check_timestamp_roundtrip(timestamp):
-    dt = datetime.datetime.fromtimestamp(timestamp)
-    ts = get_user_headers._timestamp(dt)
-    dt_new = datetime.datetime.fromtimestamp(ts)
-    assert ts == timestamp, '{} != {}'.format(ts, timestamp)
-    assert dt_new == dt, '{} != {}'.format(dt_new, dt)
+    """Code shared between timestamp round-tripping tests"""
+    dtime = datetime.datetime.fromtimestamp(timestamp)
+    tstamp = get_user_headers._timestamp(dtime)
+    dtime_new = datetime.datetime.fromtimestamp(tstamp)
+    assert tstamp == timestamp, '{} != {}'.format(tstamp, timestamp)
+    assert dtime_new == dtime, '{} != {}'.format(dtime_new, dtime)
 
 def test_default_randomize_delay():
     """randomize_delay(): 1 <= randomize_delay() <= 1.5"""
