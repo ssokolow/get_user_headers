@@ -94,7 +94,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     def tearDown(self):
         """Remove test space on filesystem"""
-        self.getter.cache_conn.close()
+        self.getter.cache_conn.close()  # Needed for Windows
         shutil.rmtree(self.tempdir)
 
     # TODO: Tests still to be written:
@@ -103,22 +103,26 @@ class UserHeaderGetterTests(unittest.TestCase):
     # - get_safe(headers=None)
     # - All uses of the skip_cache attribute
 
+    @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
         """UserHeaderGetter: 'access denied' in __init__"""
+        readonly = os.path.join(self.tempdir, 'readonly')
+        nonexist = os.path.join(readonly, 'nonexistant')
 
-        nonexist = '/w409vrporpe'
-        self.assertFalse(os.path.exists(nonexist))
+        os.mkdir(readonly)
+        os.chmod(readonly, 444)
+        try:
+            # os.makedirs failure
+            self.assertFalse(os.path.exists(nonexist))
+            self.assertRaises(get_user_headers.OS_ERROR,
+                              get_user_headers.UserHeaderGetter, nonexist)
 
-        readonly = 'C:\\' if os.name == 'nt' else '/'
-        self.assertTrue(os.path.exists(readonly))
-
-        # os.makedirs failure
-        self.assertRaises(get_user_headers.OS_ERROR,
-                          get_user_headers.UserHeaderGetter, nonexist)
-
-        # sqlite3.connect failure
-        self.assertRaises(sqlite3.OperationalError,
-                          get_user_headers.UserHeaderGetter, readonly)
+            # sqlite3.connect failure
+            self.assertTrue(os.path.exists(readonly))
+            self.assertRaises(sqlite3.OperationalError,
+                              get_user_headers.UserHeaderGetter, readonly)
+        finally:
+            os.chmod(readonly, 777)
 
     def test_clear_expired(self):
         """UserHeaderGetter: clear_expired() functions properly"""
