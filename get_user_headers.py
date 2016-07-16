@@ -16,11 +16,9 @@ try:
 except ImportError:  # pragma: no cover
     import BaseHTTPServer as http_server
 
-EEXIST = errno.EEXIST
 OS_ERROR = OSError
 CACHE_ROOT = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 if os.name == 'nt':  # pragma: no cover
-    EEXIST = 183
     OS_ERROR = WindowsError
     CACHE_ROOT = os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA',
                                                                CACHE_ROOT))
@@ -86,7 +84,7 @@ class UserHeaderGetter(object):
         try:
             os.makedirs(path)
         except OS_ERROR as err:
-            if not err.errno == EEXIST:
+            if not err.errno == errno.EEXIST:
                 raise
         self.cache_conn = sqlite3.connect(self.cache_path)
         self.cache_conn.executescript(self.cache_schema)
