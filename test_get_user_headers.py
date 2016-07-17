@@ -11,7 +11,7 @@ import datetime, math, os, platform, random, shutil, sqlite3, tempfile
 import unittest
 
 try:
-    from unittest.mock import patch  # pylint: disable=no-name-in-module
+    from unittest.mock import patch, ANY  # pylint: disable=no-name-in-module
 except ImportError:
     from mock import patch, ANY
 
