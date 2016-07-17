@@ -301,7 +301,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     @patch('get_user_headers.subprocess.Popen', autospec=True)
     @patch('get_user_headers.webbrowser.open_new_tab', autospec=True)
-    def test_webbrowser_open(self, wb_open, popen):
+    def test_webbrowser_open(self, wb_open, popen):  # pylint: disable=R0201
         """webbrowser_open: Calls appropriate backend for this OS"""
         assert not popen.called
         assert not wb_open.called
@@ -313,6 +313,6 @@ class UserHeaderGetterTests(unittest.TestCase):
             assert not wb_open.called
             popen.assert_called_once_with(['xdg-open', test_url],
                                           stdout=ANY, stderr=ANY)
-        else: # pragma: no cover
+        else:  # pragma: no cover
             wb_open.assert_called_once_with(test_url)
             assert not popen.called
