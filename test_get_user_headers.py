@@ -110,7 +110,30 @@ class UserHeaderGetterTests(unittest.TestCase):
     # - __init__(path=None)
     # - get_all(headers=None)
     # - get_safe(headers=None)
-    # - All uses of the skip_cache attribute
+
+    def check_get_all(self, results):
+        """Shared code for get_all() tests"""
+        unwanted = [x.lower() for x in self.getter.unsafe_headers]
+
+        for key in results.keys():
+            self.assertNotIn(key.lower(), unwanted,
+                "Unsafe header in get_all() output: {}".format(key))
+
+        # Verify the filtering process didn't modify the key=value pairs
+        for key, value in results.items():
+            self.assertEqual(value, self.test_headers.get(key,
+                                                          random.random()))
+
+    def check_get_safe(self, results):
+        """Shared code for get_safe() tests"""
+        wanted = list(sorted(self.getter.safe_headers))
+
+        self.assertEqual(list(sorted(results.keys())), wanted)
+
+        # Verify the filtering process didn't modify the key=value pairs
+        for key, value in results.items():
+            self.assertEqual(value, self.test_headers.get(key,
+                                                          random.random()))
 
     @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
@@ -162,31 +185,64 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.assertFalse(self.getter._get_cache(),
                          "Failed to remove stale entries")
 
+    @patch('get_user_headers.UserHeaderGetter.clear_expired', autospec=True)
+    def test_get_all(self, clear):
+        """UserHeaderGetter: get_all() functions properly"""
+
+        with patch(
+                'get_user_headers.UserHeaderGetter._get_uncached',
+                autospec=True, return_value=self.test_headers.copy()
+                    ) as get_uncached, patch(
+                'get_user_headers.UserHeaderGetter._get_cache',
+                autospec=True, return_value=self.test_headers.copy()
+                    ) as get_cache:
+            assert get_uncached.call_count == 0
+            assert get_cache.call_count == 0
+            assert clear.call_count == 0
+
+            results = self.getter.get_all(skip_cache=True)
+            assert get_uncached.call_count == 1
+            assert get_cache.call_count == 0
+            assert clear.call_count == 1
+
+            results = self.getter.get_all()
+            assert get_uncached.call_count == 1
+            assert get_cache.call_count == 1
+            assert clear.call_count == 2
+
+        self.check_get_all(results)
+
     def test_get_all_as_filter(self):
-        """UserHeaderGetter: get_all() properly filters input"""
+        """UserHeaderGetter: get_all(headers) properly filters input"""
         results = self.getter.get_all(self.test_headers.copy())
-        unwanted = [x.lower() for x in self.getter.unsafe_headers]
+        self.check_get_all(results)
 
-        for key in results.keys():
-            self.assertNotIn(key.lower(), unwanted,
-                "Unsafe header in get_all() output: {}".format(key))
+    def test_get_safe(self):
+        """UserHeaderGetter: get_safe() functions properly"""
+        with patch(
+                'get_user_headers.UserHeaderGetter._get_uncached',
+                autospec=True, return_value=self.test_headers.copy()
+                    ) as get_uncached, patch(
+                'get_user_headers.UserHeaderGetter._get_cache',
+                autospec=True, return_value=self.test_headers.copy()
+                    ) as get_cache:
+            assert get_uncached.call_count == 0
+            assert get_cache.call_count == 0
 
-        # Verify the filtering process didn't modify the key=value pairs
-        for key, value in results.items():
-            self.assertEqual(value, self.test_headers.get(key,
-                                                          random.random()))
+            results = self.getter.get_safe(skip_cache=True)
+            self.check_get_safe(results)
+            assert get_uncached.call_count == 1
+            assert get_cache.call_count == 0
+
+            results = self.getter.get_safe()
+            self.check_get_safe(results)
+            assert get_uncached.call_count == 1
+            assert get_cache.call_count == 1
 
     def test_get_safe_as_filter(self):
-        """UserHeaderGetter: get_safe() properly filters input"""
+        """UserHeaderGetter: get_safe(headers) properly filters input"""
         results = self.getter.get_safe(self.test_headers.copy())
-        wanted = list(sorted(self.getter.safe_headers))
-
-        self.assertEqual(list(sorted(results.keys())), wanted)
-
-        # Verify the filtering process didn't modify the key=value pairs
-        for key, value in results.items():
-            self.assertEqual(value, self.test_headers.get(key,
-                                                          random.random()))
+        self.check_get_safe(results)
 
     @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
            autospec=True)
