@@ -18,6 +18,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo easy_install pip; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pip install nose mock coverage; fi
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo pip install coveralls; else pip install coveralls; fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then pip install coveralls; fi
 script: nosetests
-after_success: coveralls
+after_success:
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then coveralls; fi
