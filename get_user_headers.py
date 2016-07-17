@@ -16,7 +16,7 @@ try:
 except ImportError:  # pragma: no cover
     import BaseHTTPServer as http_server
 
-OS_ERROR = OSError
+OS_ERROR = OSError  # pylint: disable=invalid-name
 CACHE_ROOT = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
 if os.name == 'nt':  # pragma: no cover
     OS_ERROR = WindowsError  # pylint: disable=undefined-variable
@@ -194,7 +194,7 @@ class UserHeaderGetter(object):
                 return dict(headers)
         return None
 
-    def _get_uncached(self):
+    def _get_uncached(self):  # pylint: disable=no-self-use
         """Harvest and return all request headers from user default browser."""
         harvested_headers = []
 
@@ -328,6 +328,7 @@ if __name__ == '__main__':  # pragma: no cover
     safe_headers = getter.get_safe(headers)
 
     def prettyprint(title, headers):
+        """Deduplicated pretty-print code"""
         print(title)
         print('\n'.join(' {:>25}: {}'.format(k, v)
                         for k, v in headers.items()))
