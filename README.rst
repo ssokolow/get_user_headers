@@ -195,7 +195,7 @@ Usage
         cache=FileCache(os.path.expanduser('~/.cache/http_cache')))
     session.headers.update(UserHeaderGetter().get_safe())
 
-    urls = {(None, 'http://starting.url/')}
+    urls = [(None, 'http://www.example.com/')]
     while urls:
         parent_url, url = urls.pop(0)
 
@@ -205,7 +205,8 @@ Usage
 
         response = session.get(url, headers=req_headers)
 
-        # <do stuff with the resulting content and maybe urls.append(...)>
+        # TODO: Do actual stuff with the response and maybe urls.append(...)
+        print(response)
 
         # Simulate human limits to foil statistical analysis
         time.sleep(randomize_delay(BASE_DELAY))
