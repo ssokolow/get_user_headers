@@ -212,6 +212,18 @@ class UserHeaderGetter(object):
                 return dict(headers)
         return None
 
+    def normalize_header_names(self, headers):
+        """Normalize the case of keys in the given dictionary.
+
+        Keys in `known_headers` will be normalized to the standardized casing
+        while unrecognized keys will be fed through ``str.title()``
+        """
+        # TODO: Consider using my titlecase_up() function from game_launcher to
+        # prevent acronyms from getting converted back to titlecase.
+        # TODO: Force the C locale before doing this locale-specific operation
+        known = {x.lower(): x for x in self.known_headers}
+        return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
+
     def _get_uncached(self):  # pylint: disable=no-self-use
         """Harvest and return all request headers from user default browser."""
         harvested_headers = []
@@ -295,17 +307,17 @@ class UserHeaderGetter(object):
             headers = headers or self._get_uncached()
             self._save_cache(headers)
 
-        unwanted = [x.lower() for x in self.unsafe_headers]
-        return {key: value for key, value in headers.items()
-                    if not key.lower() in unwanted}
+        return {key: value for key, value
+                in self.normalize_header_names(headers).items()
+                    if not key in self.unsafe_headers}
 
     def get_safe(self, headers=None, skip_cache=False):
         """Get all headers which should have no or beneficial effects."""
         headers = headers or self.get_all(skip_cache=skip_cache)
 
-        return {key: value for key, value in headers.items()
-                if set([key, key.title(), key.upper()]
-                       ).intersection(self.safe_headers)}
+        return {key: value for key, value
+                in self.normalize_header_names(headers).items()
+                    if key in self.safe_headers}
 
 def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     """Return a time to wait in floating-point seconds to disguise automation.

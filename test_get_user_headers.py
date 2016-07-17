@@ -17,6 +17,10 @@ except ImportError:
 
 import get_user_headers
 
+# TODO: Make these tests locale-safe
+# (They currently don't force a preferred locale for things like lowercasing
+#  headers, which means they'll fail under Turkish locales.)
+
 def check_randomize_delay(base_delay, results):
     """Code shared between default and nondefault randomize_delay tests."""
     assert min(results) >= base_delay * 0.5
@@ -175,16 +179,47 @@ class UserHeaderGetterTests(unittest.TestCase):
     def test_get_safe_as_filter(self):
         """UserHeaderGetter: get_safe() properly filters input"""
         results = self.getter.get_safe(self.test_headers.copy())
-        wanted = [x.lower() for x in self.getter.safe_headers]
+        wanted = list(sorted(self.getter.safe_headers))
 
-        for key in results.keys():
-            self.assertIn(key.lower(), wanted,
-                "Unknown header in get_safe() output: {}".format(key))
+        self.assertEqual(list(sorted(results.keys())), wanted)
 
         # Verify the filtering process didn't modify the key=value pairs
         for key, value in results.items():
             self.assertEqual(value, self.test_headers.get(key,
                                                           random.random()))
+
+    @patch('get_user_headers.UserHeaderGetter.normalize_header_names')
+    def test_normalize_called(self, normalize):
+        """UserHeaderGetter: get_safe/get_all call normalize_header_names()"""
+        normalize.assert_not_called()
+
+        self.getter.get_all(self.test_headers.copy())
+        normalize.assert_called_once()
+        normalize.reset_mock()
+
+        self.getter.get_safe(self.test_headers.copy())
+        normalize.assert_called_once()
+
+    def test_normalize_header_names(self):
+        """UserHeaderGetter: normalize_header_names functions properly"""
+        matcher = [x.lower() for x in self.getter.known_headers]
+        before = self.test_headers.copy()
+        self.getter.normalize_header_names(before)
+
+        self.assertEqual(before, self.test_headers,
+                         "Must not mutate input dict")
+
+        for oper in ('lower', 'upper', 'title'):
+            before = {getattr(x, oper)(): y for x, y in before.items()}
+            result = self.getter.normalize_header_names(before)
+
+            for key in result:
+                if key.lower() in matcher:
+                    self.assertIn(key, self.getter.known_headers)
+                elif key.startswith('X-Testing-'):
+                    self.assertEqual(key, key.title())
+                else:  # pragma: no cover
+                    self.fail("Unrecognized header: {}".format(key))
 
     def test_parent_dir_exists(self):
         """UserHeaderGetter: cache directory already exists"""
