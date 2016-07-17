@@ -37,6 +37,24 @@ def _timestamp(dt_obj):
     """
     return time.mktime(dt_obj.timetuple())
 
+def webbrowser_open(url):
+    """Wrapper for webbrowser.open_new_tab to fix recent Firefox versions.
+
+    On Linux, the Python standard library brings along its own hard-coded
+    support for opening URLs in Firefox which was broken by the removal of
+    the `-remote` option.
+
+    This works around that by providing an alternative which calls `xdg-open`,
+    similar to how, on Windows and OSX, the webbrowser module use OS API calls
+    equivalent to `start <url>` and `open <url>`.
+    """
+    if os.name == 'posix' and not platform.mac_ver()[0]:
+        with open(os.devnull, 'wb') as nul:
+            subprocess.Popen(['xdg-open', url], stdout=nul, stderr=nul)
+    else:
+        webbrowser.open_new_tab(url)
+
+
 class UserHeaderGetter(object):
     """Wrapper to represent a persistent cache for headers and the code to
     retrieve new ones when stale.
@@ -260,17 +278,9 @@ class UserHeaderGetter(object):
         request_url = 'http://localhost:%d' % server_address[1]
 
         # FIXME: Fire off the subprocess/webbrowser call in another thread to
-        #        minimize the chance of a race condition.
-        if os.name == 'posix' and not platform.mac_ver()[0]:
-            # The webbrowser module uses its own internal resolution order
-            # rather han XDG preferences on Linux and, for some reason, its
-            # approach to calling Firefox via -remote is broken on my machine.
-            # Just use XDG.
-            with open(os.devnull, 'wb') as nul:
-                subprocess.Popen(['xdg-open', request_url],
-                                 stdout=nul, stderr=nul)
-        else:
-            webbrowser.open_new_tab(request_url)
+        #        minimize the chance of a race condition. (And block until the
+        #        server is ready to accept requests in order to ENSURE it.)
+        webbrowser_open(request_url)
         httpd.handle_request()
         httpd.server_close()  # Supposedly proper shutdown
         httpd.socket.close()  # Required to silence Py3 unclosed socket warning

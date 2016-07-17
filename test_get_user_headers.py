@@ -7,7 +7,13 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import datetime, math, os, random, shutil, sqlite3, tempfile, unittest
+import datetime, math, os, platform, random, shutil, sqlite3, tempfile
+import unittest
+
+try:
+    from unittest.mock import patch  # pylint: disable=no-name-in-module
+except ImportError:
+    from mock import patch, ANY
 
 import get_user_headers
 
@@ -200,3 +206,21 @@ class UserHeaderGetterTests(unittest.TestCase):
 
         self.assertEqual(retrieved_again, self.test_data,
                         "Error introduced somewhere in round-tripping")
+
+    @patch('get_user_headers.subprocess.Popen')
+    @patch('get_user_headers.webbrowser.open_new_tab')
+    def test_webbrowser_open(self, wb_open, popen):
+        """webbrowser_open: Calls appropriate backend for this OS"""
+        assert not popen.called
+        assert not wb_open.called
+
+        test_url = 'http://www.example.com:1234/'
+        get_user_headers.webbrowser_open(test_url)
+
+        if os.name == 'posix' and not platform.mac_ver()[0]:
+            wb_open.assert_not_called()
+            popen.assert_called_once_with(['xdg-open', test_url],
+                                          stdout=ANY, stderr=ANY)
+        else:
+            wb_open.assert_called_once_with(test_url)
+            popen.assert_not_called()
