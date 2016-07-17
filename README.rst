@@ -184,7 +184,7 @@ Usage
 
     from get_user_headers import UserHeaderGetter, randomize_delay
 
-    # You should measure average the time a human takes (per page, in seconds)
+    # Measure and average the time a human takes (per page, in seconds)
     # for your specific application and use that number here
     BASE_DELAY = 3
 
@@ -208,7 +208,7 @@ Usage
         # <do stuff with the resulting content and maybe urls.append(...)>
 
         # Simulate human limits to foil statistical analysis
-        time.sleep(randomize_delay(base_delay))
+        time.sleep(randomize_delay(BASE_DELAY))
 
 Also, while developing your bot, be sure to use some mechanism to cache your
 test URLs permanently, such as passing ``forever=True`` when initializing
