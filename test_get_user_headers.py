@@ -221,6 +221,6 @@ class UserHeaderGetterTests(unittest.TestCase):
             wb_open.assert_not_called()
             popen.assert_called_once_with(['xdg-open', test_url],
                                           stdout=ANY, stderr=ANY)
-        else:
+        else: # pragma: no cover
             wb_open.assert_called_once_with(test_url)
             popen.assert_not_called()

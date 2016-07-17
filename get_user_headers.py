@@ -51,7 +51,7 @@ def webbrowser_open(url):
     if os.name == 'posix' and not platform.mac_ver()[0]:
         with open(os.devnull, 'wb') as nul:
             subprocess.Popen(['xdg-open', url], stdout=nul, stderr=nul)
-    else:
+    else: # pragma: no cover
         webbrowser.open_new_tab(url)
 
 
