@@ -80,8 +80,7 @@ class UserHeaderGetterTests(unittest.TestCase):
     }
 
     test_headers = {x: 'foo{}'.format(random.random()) for x in
-                    list(get_user_headers.UserHeaderGetter.safe_headers) +
-                    list(get_user_headers.UserHeaderGetter.unsafe_headers) +
+                    list(get_user_headers.UserHeaderGetter.known_headers) +
                     ['X-Testing-{}'.format(random.random())]}
     test_headers.update({x.lower(): y for x, y in test_headers.items()})
     test_headers.update({x.upper(): y for x, y in test_headers.items()})

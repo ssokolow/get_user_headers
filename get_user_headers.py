@@ -42,6 +42,12 @@ class UserHeaderGetter(object):
     retrieve new ones when stale.
 
     (Uses SQLite for storage to get locking and corruption resistance)
+
+    References used:
+    - https://en.wikipedia.org/wiki/List_of_HTTP_headers
+    - https://msdn.microsoft.com/en-us/library/aa287673(v=vs.71).aspx
+    - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+    - http://httpwg.org/http-extensions/client-hints.html
     """
     # How long retrieved headers should be cached to avoid bothering the user
     # by popping open a new browser tab
@@ -62,18 +68,83 @@ class UserHeaderGetter(object):
     # Headers which should either have a null or desired effect on returned
     # content. (So we should mimic them to look more like the user's browser)
     safe_headers = set([
+        'Accept',
         'Accept-Charset',
         'Accept-Language',
-        'Accept',
-        'User-Agent',
         'DNT',
+        'From',              # If you don't like it, fix your browser
+        'User-Agent',
+        'X-ATT-Deviceid',    # TODO: Verify proper capitalization of ID
+        'X-Wap-Profile',
     ])
 
     # Headers which should never be retrieved for safety reasons
     unsafe_headers = set([
+        # Stuff which could leak localhost credentials
+        'Authorization',
         'Cookie',
+        'Cookie2',           # RFC 6265: Obsolete
+        'X-Csrf-Token',
+        'X-CSRFToken',
+        'X-UIDH',            # Don't ease tracking. Let Verizon re-insert it.
+        'X-XSRF-TOKEN',
+        # TODO: Need to research whether it's safe to mimic
+        'Proxy-Authorization',
+        # Stuff we'd like to match behaviour on, but which can't be naively
+        # repeated because they depend on the request or client implementation
+        'Content-Encoding',  # W3C says it's an entity header
+        'Content-Language',  # W3C says it's an entity header
+        'Content-Length',
+        'Content-Location',  # MSDN says: Entity. Can be used in requests
+        'Content-MD5',       # Wikipedia says: Obsolete
+        'Content-Range',     # MSDN
+        'Content-Type',
+        'Date',
+        'Expect',
+        'Expires',           # MSDN says: Entity. Can be used in requests
+        'Front-End-Https',
         'Host',
-        'Referer'
+        'If-Match',
+        'If-Modified-Since',
+        'If-None-Match',
+        'If-Range',
+        'If-Unmodified-Since',
+        'Last-Modified',     # MSDN says: Entity. Can be used in requests
+        'Origin',
+        'Range',
+        'Referer',
+        'TE',
+        "Transfer-Encoding",
+        'Upgrade',
+        'X-Forwarded-Host',
+        'X-Forwarded-Proto',
+        'X-Http-Method-Override',
+        'X-ProxyUser-Ip',
+        'X-Requested-With',
+    ])
+
+    # Canonical capitalizations of headers for use in normalization
+    known_headers = safe_headers.union(unsafe_headers).union([
+        'Accept-Encoding',
+        'Accept-Datetime',   # Wikipedia says: Provisional
+        'Cache-Control',
+        'Connection',
+        'Pragma',            # MSDN says: Can be used in requests
+        'Proxy-Connection',
+        # Headers which should only be sent based on parent response's
+        # Accept-CH response header
+        "DPR",
+        "Width",
+        "Viewport-Width",
+        "Downling",
+        "Save-Data",
+        # TODO: Research the real-world uses of these
+        'Forwarded',
+        'Max-Forwards',
+        "Trailer",           # MSDN says: Can be used in requests
+        'Via',
+        'Warning',
+        'X-Forwarded-For',   # TODO: Do any client-side proxies set this?
     ])
 
     def __init__(self, path=None):
