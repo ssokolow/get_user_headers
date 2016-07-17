@@ -159,7 +159,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
         for key in results.keys():
             self.assertNotIn(key.lower(), unwanted,
-                "Unsafe headers in get_all() output")
+                "Unsafe header in get_all() output: {}".format(key))
 
         # Verify the filtering process didn't modify the key=value pairs
         for key, value in results.items():

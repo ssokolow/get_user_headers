@@ -285,9 +285,9 @@ class UserHeaderGetter(object):
             headers = headers or self._get_uncached()
             self._save_cache(headers)
 
+        unwanted = [x.lower() for x in self.unsafe_headers]
         return {key: value for key, value in headers.items()
-                    if not set([key, key.title(), key.upper()]
-                               ).intersection(self.unsafe_headers)}
+                    if not key.lower() in unwanted}
 
     def get_safe(self, headers=None, skip_cache=False):
         """Get all headers which should have no or beneficial effects."""
