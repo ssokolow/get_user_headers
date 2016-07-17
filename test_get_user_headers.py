@@ -12,7 +12,7 @@ import unittest
 
 try:
     from unittest.mock import patch, ANY  # pylint: disable=no-name-in-module
-except ImportError:
+except ImportError:  # pragma: no cover
     from mock import patch, ANY
 
 import get_user_headers
@@ -142,7 +142,7 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.assertEqual(self.getter._get_cache(), self.test_data,
                          "Shouldn't expire freshly-added entries")
 
-        # XXX: Do I want a less "DIY hack"-ish solution here?
+        # XXX: Why can't mock find 'now' on get_user_headers.datetime.datetime?
         real_dt = datetime.datetime
         try:
             class MockDateTime(real_dt):
@@ -246,8 +246,8 @@ class UserHeaderGetterTests(unittest.TestCase):
     @patch('get_user_headers.webbrowser.open_new_tab')
     def test_webbrowser_open(self, wb_open, popen):
         """webbrowser_open: Calls appropriate backend for this OS"""
-        assert not popen.called
-        assert not wb_open.called
+        popen.assert_not_called()
+        wb_open.assert_not_called()
 
         test_url = 'http://www.example.com:1234/'
         get_user_headers.webbrowser_open(test_url)
