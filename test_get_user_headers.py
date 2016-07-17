@@ -188,17 +188,18 @@ class UserHeaderGetterTests(unittest.TestCase):
             self.assertEqual(value, self.test_headers.get(key,
                                                           random.random()))
 
-    @patch('get_user_headers.UserHeaderGetter.normalize_header_names')
+    @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
+           autospec=True)
     def test_normalize_called(self, normalize):
         """UserHeaderGetter: get_safe/get_all call normalize_header_names()"""
-        normalize.assert_not_called()
+        assert not normalize.called
 
         self.getter.get_all(self.test_headers.copy())
-        normalize.assert_called_once()
+        assert normalize.call_count == 1
         normalize.reset_mock()
 
         self.getter.get_safe(self.test_headers.copy())
-        normalize.assert_called_once()
+        assert normalize.call_count == 1
 
     def test_normalize_header_names(self):
         """UserHeaderGetter: normalize_header_names functions properly"""
@@ -242,20 +243,20 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.assertEqual(retrieved_again, self.test_data,
                         "Error introduced somewhere in round-tripping")
 
-    @patch('get_user_headers.subprocess.Popen')
-    @patch('get_user_headers.webbrowser.open_new_tab')
+    @patch('get_user_headers.subprocess.Popen', autospec=True)
+    @patch('get_user_headers.webbrowser.open_new_tab', autospec=True)
     def test_webbrowser_open(self, wb_open, popen):
         """webbrowser_open: Calls appropriate backend for this OS"""
-        popen.assert_not_called()
-        wb_open.assert_not_called()
+        assert not popen.called
+        assert not wb_open.called
 
         test_url = 'http://www.example.com:1234/'
         get_user_headers.webbrowser_open(test_url)
 
         if os.name == 'posix' and not platform.mac_ver()[0]:
-            wb_open.assert_not_called()
+            assert not wb_open.called
             popen.assert_called_once_with(['xdg-open', test_url],
                                           stdout=ANY, stderr=ANY)
         else: # pragma: no cover
             wb_open.assert_called_once_with(test_url)
-            popen.assert_not_called()
+            assert not popen.called
