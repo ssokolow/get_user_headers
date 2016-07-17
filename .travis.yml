@@ -2,7 +2,6 @@ language: python
 # TODO: https://docs.travis-ci.com/user/multi-os/
 python:
   - "2.7"
-  - "3.2"
   - "3.3"
   - "3.4"
   - "3.5"
@@ -16,5 +15,4 @@ after_success: coveralls
 sudo: false
 matrix:
     allow_failures:
-        - python: "3.2"      # Broke when I added coverage
         - python: nightly
