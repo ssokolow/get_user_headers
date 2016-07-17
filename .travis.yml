@@ -1,18 +1,23 @@
+sudo: false
 language: python
-# TODO: https://docs.travis-ci.com/user/multi-os/
-python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "nightly"
-  - "pypy"
-  - "pypy3"
+matrix:
+    include:
+      - python: "2.7"
+      - python: "3.3"
+      - python: "3.4"
+      - python: "3.5"
+      - python: "nightly"
+      - python: "pypy"
+      - python: "pypy3"
+      - os: osx
+        language: generic
+    allow_failures:
+      - python: "nightly"
+before_install:
+  # Test using the Apple-provided Python since it'll be most likely to fail
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo easy_install pip; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install nose mock; fi
 install:
   - pip install coveralls
 script: nosetests
 after_success: coveralls
-sudo: false
-matrix:
-    allow_failures:
-        - python: nightly
