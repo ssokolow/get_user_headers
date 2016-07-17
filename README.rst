@@ -63,34 +63,87 @@ I understand that the desire to display advertising may be a factor, but I feel
 that ad-blocking extensions will always be far more popular than this ever
 could be and those are part of the browsers that are let through, un-molested.
 
-Warning to Website Developers
+Message to Website Developers
 -----------------------------
 
-While I understand the need to prevent abusive behaviour, I don't take
-kindly to being forced into pointless drudgework because you were too busy to
-provide an RSS feed or an ePub exporter.
+**I write bots to streamline tasks I was already doing by hand.** While I
+understand the need to prevent abusive behaviour, **not every bot is abusive**
+and I hate drudgework.
 
-Those are the two kinds of scrapers I write and, no, a walled garden with a
-proprietary client, such as Apple is offering, is not an acceptable substitute.
+The two classes of bots I write are RSS feed generators to watch a specific
+thread/tag/category/search for updates and simplified HTML exporters for
+reading fiction offline (either directly on my OpenPandora_ or on my old Sony
+Reader PRS-505 via ebook-convert_).
+
+**I always prefer official feeds/exporters if they meet my needs.** If you
+write one, and you announce it well enough for me to discover it, and you don't
+charge extra for it, I'll stop using my bots. They're always doomed to be more
+fragile anyway. (But, no, **iTunes is not acceptable**. I refuse to use
+proprietary clients and/or DRMed formats.)
+
+**I'm always conservative in my update polling**. I can't remember a time I've
+ever had an RSS generator poll for updates more frequently than once per day
+and my story exporters tend to cache chapters forever unless I manually evict
+stale content.
+
+**All of my bots will properly obey any HTTP cache-control headers you set**
+and, since hard drive space is relatively cheap and the bots are limited in
+scope, they will never prematurely expire cached data the way actual browsers
+do.
+
+Double-check that your server setup can efficiently returns a
+``304 Not Modified`` response when faced with headers like
+``If-Modified-Since`` and ``ETag``. A surprising number of sites are wasting a
+ton of CPU time and bandwidth with *real browsers* that way.
+
+Likewise, **my example code also caches properly**, so feel free to ban any
+bot with does not respect your cache directives. People who write non-caching
+bots have no excuse and will get no sympathy from me.
+
+**My bots also do request throttling** that's *stricter* than what you'll see
+from my browser when I middle-click two dozen links in rapid succession so the
+later ones can be loading while I look at the earlier ones.
+
+Furthermore, while **I can't trust ROBOTS.TXT to be reasonable**, I write
+my own spiders and whitelists to ensure **I only retrieve the bare minimum
+necessary** to generate my desired outputs, and I have yet to find a site where
+that requires downloading more than specific HTML pages and certain inline
+images used as thumbnails or fancy horizontal rulings. (And, while doing so, my
+scrapers *permanently* cache static files, regardless of HTTP headers, to be
+extra nice.)
+
+**However, don't mistake my kindness for weakness.**
+
+I'm willing to bet that anything that, long **before you make my convenience
+bots unfeasible, you'll annoy all of your users into leaving**.
+
+If you start trying to identify bots by their refusal to download supplementary
+files, I have no problem downloading and then throwing away CSS/JS/etc.
+just to appear more browser-like.
 
 If you do statistical analysis to identify likely bots, I'll do the labwork to
-develop a random delay function which is statistically indistinguishable from a
-human performing the task.
+improve the statistical distribution of my ``randomize_delay()`` function to
+the point where you start banning too many real humans.
 
-If you just slap a CAPTCHA or some "must have JavaScript" check on your
-site on the continued assumption that all bots must be abusers, I'll extend
-this into something that makes it easy to embed a full browser engine and
-JDownloader_-style "please fill this CAPTCHA" popup into any bot.
+If you start requiring a CAPTCHA or JavaScript, I'll pretend to be a bot you
+can't afford to exclude, like GoogleBot.
 
-(I'm willing to bet that anything that makes my convenience bots unfeasible
-will annoy users on normal browsers enough to drive them away in droves.)
+If you start going to the trouble of maintaining a list of IPs used by the real
+GoogleBot or if you actually *are* big enough to survive banning GoogleBot,
+I'll extend this into something that makes it easy to embed a full browser
+engine and JDownloader_-style "please fill this CAPTCHA" popups into any bot
+anyone wants to write.
 
-...or possibly write a framework which makes it easy for any bot to integrate
-with the user's browser to bypass checks.
+If your browser fingerprinting gets good enough to foil that, I'll convert this
+into a framework that allows my bots to easily puppet my actual day-to-day web
+browser to perform their requests.
 
 **Detect abuse, not bots!**
 
+.. _ebook-convert: http://manual.calibre-ebook.com/generated/en/ebook-convert.html
 .. _JDownloader: https://en.wikipedia.org/wiki/JDownloader
+.. _OpenPandora: http://openpandora.org/
+.. _PRS-505: https://en.wikipedia.org/wiki/PRS-505#2007_Model_.28Discontinued_late_2009.29
 
 Installation
 ------------
@@ -106,29 +159,62 @@ install directly from this repository.
 (I haven't yet tagged the 0.1 release because I'd like to grow the unit test
 suite as much as possible before my inability to push to PyPI is resolved.)
 
+I also *strongly* recommend using the requests_ and CacheControl_ libraries to
+make your HTTP requests so you can get proper HTTP caching semantics for free.
+
+.. code:: bash
+
+    pip install requests cachecontrol[filecache]
+
+.. _Betamax: https://github.com/sigmavirus24/betamax
+.. _CacheControl: https://cachecontrol.readthedocs.io/
+.. _FileCache: https://cachecontrol.readthedocs.io/en/latest/storage.html#filecache
+.. _requests: http://docs.python-requests.org/
+
 Usage
 -----
 
 .. code:: python
 
-    import time
+    import os, time
+
+    import requests
+    from cachecontrol import CacheControl
+    from cachecontrol.caches import FileCache
+
     from get_user_headers import UserHeaderGetter, randomize_delay
 
-    base_delay = 3  # Measure the average time a human takes in seconds
-    headers = UserHeaderGetter().get_safe()
+    # You should measure average the time a human takes (per page, in seconds)
+    # for your specific application and use that number here
+    BASE_DELAY = 3
 
-    # <configure HTTP client to use retrieved headers>
+    # requests.Session provides cookie handling and default headers
+    # CacheControl automates proper HTTP caching so you don't get banned
+    # FileCache ensures your cache survives across multiple runs of your bot
+    session = CacheControl(requests.Session(),
+        cache=FileCache(os.path.expanduser('~/.cache/http_cache')))
+    session.headers.update(UserHeaderGetter().get_safe())
 
-    while next_page:
-       # Simulate human limits to foil statistical analysis
-       time.sleep(randomize_delay(base_delay))
+    urls = {(None, 'http://starting.url/')}
+    while urls:
+        parent_url, url = urls.pop(0)
 
-       # <retrieve another page>
+        req_headers = {}
+        if parent_url:
+            req_headers['Referer'] = parent_url
 
+        response = session.get(url, headers=req_headers)
 
-The resulting headers should either have no effect on the returned content or
-should help to ensure that the bot sees the same content the user will see when
-visiting the page normally.
+        # <do stuff with the resulting content and maybe urls.append(...)>
+
+        # Simulate human limits to foil statistical analysis
+        time.sleep(randomize_delay(base_delay))
+
+Also, while developing your bot, be sure to use some mechanism to cache your
+test URLs permanently, such as passing ``forever=True`` when initializing
+FileCache_ or using Betamax_. (Both options will make your tests more reliable
+and protect you from getting banned for re-running your code too often in a
+very short period of time.)
 
 **Example Headers Gathered:**
 
@@ -139,3 +225,29 @@ visiting the page normally.
                DNT: 1
    Accept-Language: en-US,en;q=0.5
 
+Important Dynamic Headers to Mimic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Don't forget to also provide proper values for the following headers, which
+``get_safe()`` cannot return because they change from request to request:
+
+HTTP cache-control headers
+    If you are not using my example code, make sure you implement proper HTTP
+    caching.
+
+    If your bot doesn't implement HTTP caching and visits a URL more than once,
+    then that's abusive behaviour and I won't shed a tear if the website
+    administrator blocks you.
+
+``Referer`` (Note the intentional mis-spelling)
+   The second-easiest way for a site to detect hastily-written bots after
+   checking the ``User-Agent`` header is to check for a missing or incorrect
+   URL in the ``Referer`` header.
+
+   Ideally, you want to keep track of which URLs led to which other URLs so you
+   can do this perfectly, but most sites will be happy if you set ``Referer``
+   to ``http://www.example.com/`` for every request that begins with that root.
+   (And various privacy-enhancing browser extensions like RefControl and
+   uMatrix also have an option to cause real browsers to behave this way.)
+
+   My example code also demonstrates this.
