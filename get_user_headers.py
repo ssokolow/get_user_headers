@@ -51,7 +51,7 @@ def webbrowser_open(url):
     if os.name == 'posix' and not platform.mac_ver()[0]:
         with open(os.devnull, 'wb') as nul:
             subprocess.Popen(['xdg-open', url], stdout=nul, stderr=nul)
-    else: # pragma: no cover
+    else:  # pragma: no cover
         webbrowser.open_new_tab(url)
 
 
@@ -309,7 +309,7 @@ class UserHeaderGetter(object):
 
         return {key: value for key, value
                 in self.normalize_header_names(headers).items()
-                    if not key in self.unsafe_headers}
+                if key not in self.unsafe_headers}
 
     def get_safe(self, headers=None, skip_cache=False):
         """Get all headers which should have no or beneficial effects."""
@@ -317,7 +317,7 @@ class UserHeaderGetter(object):
 
         return {key: value for key, value
                 in self.normalize_header_names(headers).items()
-                    if key in self.safe_headers}
+                if key in self.safe_headers}
 
 def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     """Return a time to wait in floating-point seconds to disguise automation.
