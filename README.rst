@@ -11,13 +11,13 @@ Module for retrieving identifying headers from the user's preferred browser
    :target: https://scrutinizer-ci.com/g/ssokolow/get_user_headers/?branch=master
    :alt: Scrutinizer Code Quality
 
-.. image:: https://api.codacy.com/project/badge/Grade/864ff2918f1e49f18ce656a3944ffbdf
-   :target: https://www.codacy.com/app/from_github/get_user_headers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ssokolow/get_user_headers&amp;utm_campaign=Badge_Grade
-   :alt: Codacy
-
 .. image:: https://codeclimate.com/github/ssokolow/get_user_headers/badges/gpa.svg
    :target: https://codeclimate.com/github/ssokolow/get_user_headers
    :alt: Code Climate
+
+.. image:: https://api.codacy.com/project/badge/Grade/864ff2918f1e49f18ce656a3944ffbdf
+   :target: https://www.codacy.com/app/from_github/get_user_headers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ssokolow/get_user_headers&amp;utm_campaign=Badge_Grade
+   :alt: Codacy
 
 **Unit Tests:**
 
