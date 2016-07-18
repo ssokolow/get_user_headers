@@ -19,7 +19,7 @@ Module for retrieving identifying headers from the user's preferred browser
    :target: https://codeclimate.com/github/ssokolow/get_user_headers
    :alt: Code Climate
 
-**Unit Tests (In Development):**
+**Unit Tests:**
 
 .. image:: https://travis-ci.org/ssokolow/get_user_headers.svg?branch=master
    :target: https://travis-ci.org/ssokolow/get_user_headers

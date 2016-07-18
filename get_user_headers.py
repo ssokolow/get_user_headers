@@ -282,7 +282,7 @@ class UserHeaderGetter(object):
                 httpd = http_server.HTTPServer(server_address,
                                                UAProbingRequestHandler)
             except socket.error as err:
-                if err.errno != 98:
+                if err.errno != 98:  # Retry if the port is taken
                     raise
             else:
                 port_found = True

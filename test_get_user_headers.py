@@ -7,13 +7,22 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import datetime, math, os, platform, random, shutil, sqlite3, tempfile
-import unittest
+import datetime, math, os, platform, random, shutil, sqlite3, sys, tempfile
+import threading, unittest
 
 try:
     from unittest.mock import patch, ANY  # pylint: disable=no-name-in-module
 except ImportError:  # pragma: no cover
     from mock import patch, ANY
+
+if sys.version_info.major < 3:  # pragma: no cover
+    import urllib2
+    Request = urllib2.Request
+    urlopen = urllib2.urlopen
+else:  # pragma: no cover
+    import urllib.request  # pylint: disable=no-name-in-module,import-error
+    Request = urllib.request.Request   # pylint: disable=no-member,invalid-name
+    urlopen = urllib.request.urlopen  # pylint: disable=no-member
 
 import get_user_headers
 
@@ -44,6 +53,25 @@ def check_timestamp_roundtrip(timestamp):
     dtime_new = datetime.datetime.fromtimestamp(tstamp)
     assert tstamp == timestamp, '{} != {}'.format(tstamp, timestamp)
     assert dtime_new == dtime, '{} != {}'.format(dtime_new, dtime)
+
+class MockBrowser(threading.Thread):
+    """Fake browser which provides a run() method to replace webbrowser_open"""
+    def __init__(self, urls, *args, **kwargs):
+        threading.Thread.__init__(self, *args, **kwargs)
+        self._urls = urls
+
+    def run(self):
+        while self._urls:
+            request = Request(self._urls.pop(), headers={
+                'User-Agent': 'test-agent',
+                'X-Testing-123': 'Mock Data',
+            })
+            urlopen(request).read()
+
+    @classmethod
+    def cls_webbrowser_open(cls, url):
+        """Wrapper to adapt Thread's API to webbrowser_open mocking"""
+        cls([url]).start()
 
 def test_default_randomize_delay():
     """randomize_delay(): 1 <= randomize_delay() <= 1.5"""
@@ -108,8 +136,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     # TODO: Tests still to be written:
     # - __init__(path=None)
-    # - get_all(headers=None)
-    # - get_safe(headers=None)
+    # - Server port collision retry in _get_uncached
 
     def check_get_all(self, results):
         """Shared code for get_all() tests"""
@@ -243,6 +270,14 @@ class UserHeaderGetterTests(unittest.TestCase):
         """UserHeaderGetter: get_safe(headers) properly filters input"""
         results = self.getter.get_safe(self.test_headers.copy())
         self.check_get_safe(results)
+
+    def test_get_uncached(self):
+        """UserHeaderGetter: get_uncached() functions properly"""
+        with patch('get_user_headers.webbrowser_open', autospec=True,
+                   side_effect=MockBrowser.cls_webbrowser_open):
+            results = self.getter._get_uncached()
+            assert results.get('User-Agent') == 'test-agent'
+            assert results.get('X-Testing-123') == 'Mock Data'
 
     @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
            autospec=True)
