@@ -154,10 +154,7 @@ install directly from this repository.
 
 .. code:: bash
 
-    pip install git+https://github.com/ssokolow/get_user_headers.git
-
-(I haven't yet tagged the 0.1 release because I'd like to grow the unit test
-suite as much as possible before my inability to push to PyPI is resolved.)
+    pip install git+https://github.com/ssokolow/get_user_headers.git@v0.1
 
 I also *strongly* recommend using the requests_ and CacheControl_ libraries to
 make your HTTP requests so you can get proper HTTP caching semantics for free.
