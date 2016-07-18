@@ -30,6 +30,11 @@ import get_user_headers
 # (They currently don't force a preferred locale for things like lowercasing
 #  headers, which means they'll fail under Turkish locales.)
 
+def assert_mock_call_count(mock_map):
+    """Helper to shut Scrutinizer up about complexity in test_get_*"""
+    for mock, count in mock_map.items():
+        assert mock.call_count == count
+
 def check_randomize_delay(base_delay, results):
     """Code shared between default and nondefault randomize_delay tests."""
     assert min(results) >= base_delay * 0.5
@@ -223,19 +228,13 @@ class UserHeaderGetterTests(unittest.TestCase):
                 'get_user_headers.UserHeaderGetter._get_cache',
                 autospec=True, return_value=self.test_headers.copy()
                     ) as get_cache:
-            assert get_uncached.call_count == 0
-            assert get_cache.call_count == 0
-            assert clear.call_count == 0
+            assert_mock_call_count({get_uncached: 0, get_cache: 0, clear: 0})
 
             results = self.getter.get_all(skip_cache=True)
-            assert get_uncached.call_count == 1
-            assert get_cache.call_count == 0
-            assert clear.call_count == 1
+            assert_mock_call_count({get_uncached: 1, get_cache: 0, clear: 1})
 
             results = self.getter.get_all()
-            assert get_uncached.call_count == 1
-            assert get_cache.call_count == 1
-            assert clear.call_count == 2
+            assert_mock_call_count({get_uncached: 1, get_cache: 1, clear: 2})
 
         self.check_get_all(results)
 
@@ -253,18 +252,15 @@ class UserHeaderGetterTests(unittest.TestCase):
                 'get_user_headers.UserHeaderGetter._get_cache',
                 autospec=True, return_value=self.test_headers.copy()
                     ) as get_cache:
-            assert get_uncached.call_count == 0
-            assert get_cache.call_count == 0
+            assert_mock_call_count({get_uncached: 0, get_cache: 0})
 
             results = self.getter.get_safe(skip_cache=True)
             self.check_get_safe(results)
-            assert get_uncached.call_count == 1
-            assert get_cache.call_count == 0
+            assert_mock_call_count({get_uncached: 1, get_cache: 0})
 
             results = self.getter.get_safe()
             self.check_get_safe(results)
-            assert get_uncached.call_count == 1
-            assert get_cache.call_count == 1
+            assert_mock_call_count({get_uncached: 1, get_cache: 1})
 
     def test_get_safe_as_filter(self):
         """UserHeaderGetter: get_safe(headers) properly filters input"""
