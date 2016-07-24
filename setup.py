@@ -12,7 +12,7 @@ if __name__ == '__main__' and 'flake8' not in sys.modules:
 
     setup(
         name="get_user_headers",
-        version="0.1",
+        version="0.1.1",
         description="Helper for retrieving identifying headers from the user's"
                     "default browser",
         long_description="""A self-contained script which allows your script to

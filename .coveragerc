@@ -5,7 +5,12 @@ omit =
     */pypy3-?.?.?/*
     */lib-python/*
     */lib_pypy/*
+    */site-packages/funcsigs/*
+    */site-packages/mock/*
     */site-packages/nose/*
+    */site-packages/pbr/*
+    */site-packages/six.py
     */dist-packages/nose/*
+    six.py
 [report]
 show_missing=true
