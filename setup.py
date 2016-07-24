@@ -22,6 +22,18 @@ sore thumbs for overzealous site admins to block without cause.""",
         author="Stephan Sokolow",
         author_email="http://www.ssokolow.com/ContactMe",  # No spam harvesting
         url="https://github.com/ssokolow/get_user_headers",
+        license="MIT",
+        classifiers=[
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+        ],
+        keywords="http web bot spider automation",
         py_modules=['get_user_headers'],
 
         zip_safe=True
