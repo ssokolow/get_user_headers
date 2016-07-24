@@ -39,6 +39,23 @@ Module for retrieving identifying headers from the user's preferred browser
    :target: https://waffle.io/ssokolow/get_user_headers
    :alt: 'Tasks ready to be worked on'
 
+.. image:: https://img.shields.io/pypi/pyversions/get-user-headers.svg
+   :target: https://travis-ci.org/ssokolow/get_user_headers
+   :alt: Python 2.7 and 3 compatible
+
+.. image:: https://img.shields.io/pypi/l/get-user-headers.svg
+   :target: http://opensource.org/licenses/MIT
+   :alt: MIT Licensed
+
+.. image:: https://img.shields.io/pypi/v/get-user-headers.svg
+   :target: https://pypi.python.org/pypi/get-user-headers
+   :alt: PyPI
+
+
+.. image:: https://img.shields.io/pypi/wheel/get-user-headers.svg
+   :target: https://pypi.python.org/pypi/get-user-headers
+   :alt: Wheel available
+
 Developed under Python 2.7 and 3.4.
 
 Rationale
