@@ -15,10 +15,11 @@ if __name__ == '__main__' and 'flake8' not in sys.modules:
         version="0.1.1",
         description="Helper for retrieving identifying headers from the user's"
                     "default browser",
-        long_description="""A self-contained script which allows your script to
-retrieve headers like User-Agent from the user's preferred browser to ensure
-that requests from your (hopefully well-behaved) script don't stick out like
-sore thumbs for overzealous site admins to block without cause.""",
+        long_description="""A self-contained module with no extra dependencies
+which allows your script to retrieve headers like User-Agent from the user's
+preferred browser to ensure that requests from your (hopefully well-behaved)
+script don't stick out like sore thumbs for overzealous site admins to block
+without cause.""",
         author="Stephan Sokolow",
         author_email="http://www.ssokolow.com/ContactMe",  # No spam harvesting
         url="https://github.com/ssokolow/get_user_headers",
