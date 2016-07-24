@@ -148,13 +148,9 @@ browser to perform their requests.
 Installation
 ------------
 
-At present, I'm still waiting for a reply from the PyPI webmaster(s) on why the
-confirmation e-mails never even reach my spam filters, so you'll have to
-install directly from this repository.
-
 .. code:: bash
 
-    pip install git+https://github.com/ssokolow/get_user_headers.git@v0.1
+    pip install get-user-headers
 
 I also *strongly* recommend using the requests_ and CacheControl_ libraries to
 make your HTTP requests so you can get proper HTTP caching semantics for free.
