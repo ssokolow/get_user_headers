@@ -15,6 +15,10 @@ Module for retrieving identifying headers from the user's preferred browser
    :target: https://codeclimate.com/github/ssokolow/get_user_headers
    :alt: Code Climate
 
+.. image:: https://www.quantifiedcode.com/api/v1/project/ab9aeca5645e4bbd875bf57050f76fb1/badge.svg
+   :target: https://www.quantifiedcode.com/app/project/ab9aeca5645e4bbd875bf57050f76fb1
+   :alt: Code issues
+
 .. image:: https://api.codacy.com/project/badge/Grade/864ff2918f1e49f18ce656a3944ffbdf
    :target: https://www.codacy.com/app/from_github/get_user_headers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ssokolow/get_user_headers&amp;utm_campaign=Badge_Grade
    :alt: Codacy
