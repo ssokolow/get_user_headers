@@ -143,6 +143,13 @@ class UserHeaderGetterTests(unittest.TestCase):
     # - __init__(path=None)
     # - Server port collision retry in _get_uncached
 
+    def check_unmodified_keys(self, results):
+        """Shared code between check_get_all() and check_get_safe()"""
+        # Verify the filtering process didn't modify the key=value pairs
+        for key, value in results.items():
+            self.assertEqual(value, self.test_headers.get(key,
+                                                          random.random()))
+
     def check_get_all(self, results):
         """Shared code for get_all() tests"""
         unwanted = [x.lower() for x in self.getter.unsafe_headers]
@@ -150,22 +157,14 @@ class UserHeaderGetterTests(unittest.TestCase):
         for key in results.keys():
             self.assertNotIn(key.lower(), unwanted,
                 "Unsafe header in get_all() output: {}".format(key))
-
-        # Verify the filtering process didn't modify the key=value pairs
-        for key, value in results.items():
-            self.assertEqual(value, self.test_headers.get(key,
-                                                          random.random()))
+        self.check_unmodified_keys(results)
 
     def check_get_safe(self, results):
         """Shared code for get_safe() tests"""
         wanted = list(sorted(self.getter.safe_headers))
 
         self.assertEqual(list(sorted(results.keys())), wanted)
-
-        # Verify the filtering process didn't modify the key=value pairs
-        for key, value in results.items():
-            self.assertEqual(value, self.test_headers.get(key,
-                                                          random.random()))
+        self.check_unmodified_keys(results)
 
     @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
@@ -286,6 +285,18 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.getter.get_safe(self.test_headers.copy())
         assert normalize.call_count == 1
 
+    def check_header_name(self, key, matcher):
+        """Helper to check the validity of a header name
+
+        (Used to keep cyclomatic complexity down in test_normalize_header_names
+        """
+        if key.lower() in matcher:
+            self.assertIn(key, self.getter.known_headers)
+        elif key.startswith('X-Testing-'):
+            self.assertEqual(key, key.title())
+        else:  # pragma: no cover
+            self.fail("Unrecognized header: {}".format(key))
+
     def test_normalize_header_names(self):
         """UserHeaderGetter: normalize_header_names functions properly"""
         matcher = [x.lower() for x in self.getter.known_headers]
@@ -300,12 +311,7 @@ class UserHeaderGetterTests(unittest.TestCase):
             result = self.getter.normalize_header_names(before)
 
             for key in result:
-                if key.lower() in matcher:
-                    self.assertIn(key, self.getter.known_headers)
-                elif key.startswith('X-Testing-'):
-                    self.assertEqual(key, key.title())
-                else:  # pragma: no cover
-                    self.fail("Unrecognized header: {}".format(key))
+                self.check_header_name(key, matcher)
 
     def test_parent_dir_exists(self):
         """UserHeaderGetter: no exception if cache directory already exists"""
