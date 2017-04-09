@@ -318,6 +318,7 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.check_header_names_multicase(before, matcher)
 
     @unittest.skipIf(os.name == 'nt', "Test is broken on AppVeyor")
+    @unittest.skipIf(platform.mac_ver()[0], "Test is broken on Travis-CI OSX")
     def test_normalize_header_names_turkisk_locale(self):
         """UserHeaderGetter: normalize_header_names is locale-independent"""
         before, matcher = self.prepare_for_header_name_check()
