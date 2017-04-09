@@ -135,10 +135,6 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.getter.cache_conn.close()  # Needed for Windows
         shutil.rmtree(self.tempdir)
 
-    # TODO: Tests still to be written:
-    # - __init__(path=None)
-    # - Server port collision retry in _get_uncached
-
     def check_unmodified_keys(self, results):
         """Shared code between check_get_all() and check_get_safe()"""
         # Verify the filtering process didn't modify the key=value pairs
@@ -217,6 +213,20 @@ class UserHeaderGetterTests(unittest.TestCase):
                               get_user_headers.UserHeaderGetter, readonly)
         finally:
             os.chmod(readonly, 777)
+
+    def test_default_path(self):
+        """UserHeaderGetter: initialization with default path works properly"""
+        test_dir = os.path.join(self.tempdir, 'default')
+        os.makedirs(test_dir)
+
+        orig_cache_dir = get_user_headers.CACHE_DIR
+        get_user_headers.CACHE_DIR = test_dir
+
+        try:
+            getter = get_user_headers.UserHeaderGetter()
+            assert getter.cache_path == os.path.join(test_dir, 'cache.sqlite3')
+        finally:
+            get_user_headers.CACHE_DIR = orig_cache_dir
 
     def test_clear_expired(self):
         """UserHeaderGetter: clear_expired() functions properly"""
@@ -302,6 +312,9 @@ class UserHeaderGetterTests(unittest.TestCase):
             results = self.getter._get_uncached()
             assert results.get('User-Agent') == 'test-agent'
             assert results.get('X-Testing-123') == 'Mock Data'
+
+    # TODO: Tests still to be written:
+    # - Server port collision retry in _get_uncached
 
     @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
            autospec=True)
