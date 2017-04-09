@@ -224,7 +224,10 @@ class UserHeaderGetterBase(unittest.TestCase):
         return before, matcher
 
 class UserHeaderGetterTests1(UserHeaderGetterBase):
-    """Tests for UserHeaderGetter"""
+    """Tests for UserHeaderGetter (part 1)
+
+    (Split to make JUnit-style testing please the cyclomatic complexity check)
+    """
 
     @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
@@ -289,6 +292,88 @@ class UserHeaderGetterTests1(UserHeaderGetterBase):
 
         self.assertFalse(self.getter._get_cache(),
                          "Failed to remove stale entries")
+
+    @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
+           autospec=True)
+    def test_normalize_called(self, normalize):
+        """UserHeaderGetter: get_safe/get_all call normalize_header_names()"""
+        assert not normalize.called
+
+        self.getter.get_all(self.test_headers.copy())
+        assert normalize.call_count == 1
+        normalize.reset_mock()
+
+        self.getter.get_safe(self.test_headers.copy())
+        assert normalize.call_count == 1
+
+    def test_normalize_header_names(self):
+        """UserHeaderGetter: normalize_header_names functions properly"""
+        before, matcher = self.prepare_for_header_name_check()
+        self.check_header_names_multicase(before, matcher)
+
+    @unittest.skipIf(os.name == 'nt', "Test is broken on AppVeyor")
+    @unittest.skipIf(platform.mac_ver()[0], "Test is broken on Travis-CI OSX")
+    def test_normalize_header_names_turkish(self):  # pylint: disable=C0103
+        """UserHeaderGetter: normalize_header_names is locale-independent"""
+        before, matcher = self.prepare_for_header_name_check()
+
+        old_locale = locale.setlocale(locale.LC_ALL)
+        try:
+            locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
+        except ValueError:  # pragma: no cover
+            raise unittest.SkipTest("Running under a Python version with "
+                "broken support for calling locale.setlocale() with "
+                "'tr_TR.utf8'. This only breaks the unit test though.")
+        else:
+            self.check_header_names_multicase(before, matcher)
+        finally:
+            locale.setlocale(locale.LC_ALL, old_locale)
+
+    def test_parent_dir_exists(self):
+        """UserHeaderGetter: no exception if cache directory already exists"""
+        get_user_headers.UserHeaderGetter(self.tempdir)
+
+    def test_storage(self):
+        """UserHeaderGetter: basic functionality of SQLite-wrapping calls"""
+        self.assertIsNone(self.getter._get_cache())
+
+        stored = self.test_data.copy()
+        self.getter._save_cache(stored)
+        self.assertEqual(stored, self.test_data)
+
+        retrieved = self.getter._get_cache()
+        self.assertEqual(retrieved, stored)
+
+        retrieved_again = self.getter._get_cache()
+        self.assertEqual(retrieved_again, retrieved)
+
+        self.assertEqual(retrieved_again, self.test_data,
+                        "Error introduced somewhere in round-tripping")
+
+    @staticmethod
+    @patch('get_user_headers.subprocess.Popen', autospec=True)
+    @patch('get_user_headers.webbrowser.open_new_tab', autospec=True)
+    def test_webbrowser_open(wb_open, popen):  # pylint: disable=R0201
+        """webbrowser_open: Calls appropriate backend for this OS"""
+        assert not popen.called
+        assert not wb_open.called
+
+        test_url = 'http://www.example.com:1234/'
+        get_user_headers.webbrowser_open(test_url)
+
+        if os.name == 'posix' and not platform.mac_ver()[0]:
+            assert not wb_open.called
+            popen.assert_called_once_with(['xdg-open', test_url],
+                                          stdout=ANY, stderr=ANY)
+        else:  # pragma: no cover
+            wb_open.assert_called_once_with(test_url)
+            assert not popen.called
+
+class UserHeaderGetterTests2(UserHeaderGetterBase):
+    """Tests for UserHeaderGetter (part 2)
+
+    (Split to make JUnit-style testing please the cyclomatic complexity check)
+    """
 
     @patch('get_user_headers.UserHeaderGetter.clear_expired', autospec=True)
     def test_get_all(self, clear):
@@ -381,79 +466,3 @@ class UserHeaderGetterTests1(UserHeaderGetterBase):
                 self.assertRaises(socket.error, self.getter._get_uncached)
             finally:
                 get_user_headers.USABLE_PORTS = usable_orig
-
-    @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
-           autospec=True)
-    def test_normalize_called(self, normalize):
-        """UserHeaderGetter: get_safe/get_all call normalize_header_names()"""
-        assert not normalize.called
-
-        self.getter.get_all(self.test_headers.copy())
-        assert normalize.call_count == 1
-        normalize.reset_mock()
-
-        self.getter.get_safe(self.test_headers.copy())
-        assert normalize.call_count == 1
-
-    def test_normalize_header_names(self):
-        """UserHeaderGetter: normalize_header_names functions properly"""
-        before, matcher = self.prepare_for_header_name_check()
-        self.check_header_names_multicase(before, matcher)
-
-    @unittest.skipIf(os.name == 'nt', "Test is broken on AppVeyor")
-    @unittest.skipIf(platform.mac_ver()[0], "Test is broken on Travis-CI OSX")
-    def test_normalize_header_names_turkish(self):  # pylint: disable=C0103
-        """UserHeaderGetter: normalize_header_names is locale-independent"""
-        before, matcher = self.prepare_for_header_name_check()
-
-        old_locale = locale.setlocale(locale.LC_ALL)
-        try:
-            locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
-        except ValueError:  # pragma: no cover
-            raise unittest.SkipTest("Running under a Python version with "
-                "broken support for calling locale.setlocale() with "
-                "'tr_TR.utf8'. This only breaks the unit test though.")
-        else:
-            self.check_header_names_multicase(before, matcher)
-        finally:
-            locale.setlocale(locale.LC_ALL, old_locale)
-
-    def test_parent_dir_exists(self):
-        """UserHeaderGetter: no exception if cache directory already exists"""
-        get_user_headers.UserHeaderGetter(self.tempdir)
-
-    def test_storage(self):
-        """UserHeaderGetter: basic functionality of SQLite-wrapping calls"""
-        self.assertIsNone(self.getter._get_cache())
-
-        stored = self.test_data.copy()
-        self.getter._save_cache(stored)
-        self.assertEqual(stored, self.test_data)
-
-        retrieved = self.getter._get_cache()
-        self.assertEqual(retrieved, stored)
-
-        retrieved_again = self.getter._get_cache()
-        self.assertEqual(retrieved_again, retrieved)
-
-        self.assertEqual(retrieved_again, self.test_data,
-                        "Error introduced somewhere in round-tripping")
-
-    @staticmethod
-    @patch('get_user_headers.subprocess.Popen', autospec=True)
-    @patch('get_user_headers.webbrowser.open_new_tab', autospec=True)
-    def test_webbrowser_open(wb_open, popen):  # pylint: disable=R0201
-        """webbrowser_open: Calls appropriate backend for this OS"""
-        assert not popen.called
-        assert not wb_open.called
-
-        test_url = 'http://www.example.com:1234/'
-        get_user_headers.webbrowser_open(test_url)
-
-        if os.name == 'posix' and not platform.mac_ver()[0]:
-            assert not wb_open.called
-            popen.assert_called_once_with(['xdg-open', test_url],
-                                          stdout=ANY, stderr=ANY)
-        else:  # pragma: no cover
-            wb_open.assert_called_once_with(test_url)
-            assert not popen.called
