@@ -114,7 +114,7 @@ Double-check that your server setup can efficiently returns a
 ton of CPU time and bandwidth with *real browsers* that way.
 
 Likewise, **my example code also caches properly**, so feel free to ban any
-bot with does not respect your cache directives. People who write non-caching
+bot which does not respect your cache directives. People who write non-caching
 bots have no excuse and will get no sympathy from me.
 
 **My bots also do request throttling** that's *stricter* than what you'll see
