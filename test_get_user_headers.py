@@ -302,16 +302,25 @@ class UserHeaderGetterTests(unittest.TestCase):
             for key in result:
                 self.check_header_name(key, matcher)
 
-    def test_normalize_header_names(self):
-        """UserHeaderGetter: normalize_header_names functions properly"""
+    def prepare_for_header_name_check(self):
+        """Common code for test_normalize_header_names*"""
         matcher = [x.lower() for x in self.getter.known_headers]
         before = self.test_headers.copy()
 
         self.getter.normalize_header_names(before)
         self.assertEqual(before, self.test_headers,
                          "Must not mutate input dict")
+        return before, matcher
 
+    def test_normalize_header_names(self):
+        """UserHeaderGetter: normalize_header_names functions properly"""
+        before, matcher = self.prepare_for_header_name_check()
         self.check_header_names_multicase(before, matcher)
+
+    @unittest.skipIf(os.name == 'nt', "Test is broken on AppVeyor")
+    def test_normalize_header_names_turkisk_locale(self):
+        """UserHeaderGetter: normalize_header_names is locale-independent"""
+        before, matcher = self.prepare_for_header_name_check()
 
         old_locale = locale.setlocale(locale.LC_ALL)
         try:
