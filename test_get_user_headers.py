@@ -240,8 +240,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     def test_get_all_as_filter(self):
         """UserHeaderGetter: get_all(headers) properly filters input"""
-        results = self.getter.get_all(self.test_headers.copy())
-        self.check_get_all(results)
+        self.check_get_all(self.getter.get_all(self.test_headers.copy()))
 
     def test_get_safe(self):
         """UserHeaderGetter: get_safe() functions properly"""
@@ -264,8 +263,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     def test_get_safe_as_filter(self):
         """UserHeaderGetter: get_safe(headers) properly filters input"""
-        results = self.getter.get_safe(self.test_headers.copy())
-        self.check_get_safe(results)
+        self.check_get_safe(self.getter.get_safe(self.test_headers.copy()))
 
     def test_get_uncached(self):
         """UserHeaderGetter: get_uncached() functions properly"""
