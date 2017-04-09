@@ -162,6 +162,41 @@ class UserHeaderGetterTests(unittest.TestCase):
         self.assertEqual(list(sorted(results.keys())), wanted)
         self.check_unmodified_keys(results)
 
+    def check_header_name(self, key, matcher):
+        """Helper to check the validity of a header name
+
+        (Used to keep cyclomatic complexity down in test_normalize_header_names
+        """
+        if key.lower() in matcher:
+            self.assertIn(key, self.getter.known_headers)
+        elif key.startswith('X-Testing-'):
+            self.assertEqual(key, key.title())
+        else:  # pragma: no cover
+            self.fail("Unrecognized header: {}".format(key))
+
+    def check_header_names_multicase(self, before, matcher):
+        """Helper to be called once per locale under test"""
+        for oper in ('lower', 'upper', 'title'):
+            before = {getattr(x, oper)(): y for x, y in before.items()}
+            result = self.getter.normalize_header_names(before)
+
+            for key in result:
+                self.check_header_name(key, matcher)
+
+    def predictable_randrange(self):
+        """Helper for mocking random.randrange()"""
+        return self.random_numbers.pop()
+
+    def prepare_for_header_name_check(self):
+        """Common code for test_normalize_header_names*"""
+        matcher = [x.lower() for x in self.getter.known_headers]
+        before = self.test_headers.copy()
+
+        self.getter.normalize_header_names(before)
+        self.assertEqual(before, self.test_headers,
+                         "Must not mutate input dict")
+        return before, matcher
+
     @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
         """UserHeaderGetter: 'access denied' in __init__"""
@@ -280,37 +315,6 @@ class UserHeaderGetterTests(unittest.TestCase):
 
         self.getter.get_safe(self.test_headers.copy())
         assert normalize.call_count == 1
-
-    def check_header_name(self, key, matcher):
-        """Helper to check the validity of a header name
-
-        (Used to keep cyclomatic complexity down in test_normalize_header_names
-        """
-        if key.lower() in matcher:
-            self.assertIn(key, self.getter.known_headers)
-        elif key.startswith('X-Testing-'):
-            self.assertEqual(key, key.title())
-        else:  # pragma: no cover
-            self.fail("Unrecognized header: {}".format(key))
-
-    def check_header_names_multicase(self, before, matcher):
-        """Helper to be called once per locale under test"""
-        for oper in ('lower', 'upper', 'title'):
-            before = {getattr(x, oper)(): y for x, y in before.items()}
-            result = self.getter.normalize_header_names(before)
-
-            for key in result:
-                self.check_header_name(key, matcher)
-
-    def prepare_for_header_name_check(self):
-        """Common code for test_normalize_header_names*"""
-        matcher = [x.lower() for x in self.getter.known_headers]
-        before = self.test_headers.copy()
-
-        self.getter.normalize_header_names(before)
-        self.assertEqual(before, self.test_headers,
-                         "Must not mutate input dict")
-        return before, matcher
 
     def test_normalize_header_names(self):
         """UserHeaderGetter: normalize_header_names functions properly"""
