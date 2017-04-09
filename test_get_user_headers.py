@@ -110,7 +110,7 @@ def test_timestamp_recent():
     """_timestamp(): round-trips correctly at a typical time"""
     check_timestamp_roundtrip(1468673923)
 
-class UserHeaderGetterTests(unittest.TestCase):
+class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
     """Tests for UserHeaderGetter"""
     test_data = {
         'Foo': 'Bar',
@@ -336,7 +336,7 @@ class UserHeaderGetterTests(unittest.TestCase):
 
     @unittest.skipIf(os.name == 'nt', "Test is broken on AppVeyor")
     @unittest.skipIf(platform.mac_ver()[0], "Test is broken on Travis-CI OSX")
-    def test_normalize_header_names_turkisk_locale(self):
+    def test_normalize_header_names_turkish(self):  # pylint: disable=C0103
         """UserHeaderGetter: normalize_header_names is locale-independent"""
         before, matcher = self.prepare_for_header_name_check()
 
