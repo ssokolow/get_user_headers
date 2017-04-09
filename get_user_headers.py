@@ -55,6 +55,53 @@ def webbrowser_open(url):
     else:  # pragma: no cover
         webbrowser.open_new_tab(url)
 
+class UAProbingRequestHandler(http_server.BaseHTTPRequestHandler):
+    """Request handler for probing the browser's User-Agent string"""
+    harvested_headers = None  # Cause an error if not assigned
+
+    placeholder_content = b"""<!DOCTYPE html>
+        <html>
+            <head>
+                <title>Close Me</title>
+                <style>
+                body {
+                    margin: auto;
+                    max-width: 600px;
+                    text-align: center;
+                }
+                </style>
+            </head>
+            <body>
+              <h1>You may now close this tab</h1>
+              <p>(A program needed to inspect your preferred browser's
+                HTTP request headers. This should have closed
+                automatically but your browser ignored the JavaScript
+                <code>close()</code> call.)
+              </p>
+              <script>window.close();</script>
+            </body>
+        </html>"""
+
+    # pylint: disable=invalid-name
+    def do_HEAD(self):  # NOQA
+        """Called to serve a HEAD request"""
+        self.harvested_headers.append(self.headers)
+        self.send_response(200)
+        self.send_header("Content-type", 'text/html; charset=utf8')
+        self.send_header("Content-Length",
+                         str(len(self.placeholder_content)))
+        self.send_header("Last-Modified", self.date_time_string())
+        self.end_headers()
+
+    # pylint: disable=invalid-name
+    def do_GET(self):  # NOQA
+        """Called to serve a GET request"""
+        self.do_HEAD()
+        self.wfile.write(self.placeholder_content)
+
+    def log_message(self, *args):
+        """Silence the usual logging messages"""
+        pass
 
 class UserHeaderGetter(object):
     """Wrapper to represent a persistent cache for headers and the code to
@@ -226,63 +273,17 @@ class UserHeaderGetter(object):
         known = {x.lower(): x for x in self.known_headers}
         return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
 
-    def _get_uncached(self):  # pylint: disable=no-self-use
-        """Harvest and return all request headers from user default browser."""
-        harvested_headers = []
+    def _init_httpd_on_random(self, request_handler):
+        """Set up an HTTPServer on a random port.
 
-        class UAProbingRequestHandler(http_server.BaseHTTPRequestHandler):
-            """Request handler for probing the browser's User-Agent string"""
-
-            placeholder_content = b"""<!DOCTYPE html>
-                <html>
-                    <head>
-                        <title>Close Me</title>
-                        <style>
-                        body {
-                            margin: auto;
-                            max-width: 600px;
-                            text-align: center;
-                        }
-                        </style>
-                    </head>
-                    <body>
-                      <h1>You may now close this tab</h1>
-                      <p>(A program needed to inspect your preferred browser's
-                        HTTP request headers. This should have closed
-                        automatically but your browser ignored the JavaScript
-                        <code>close()</code> call.)
-                      </p>
-                      <script>window.close();</script>
-                    </body>
-                </html>"""
-
-            # pylint: disable=invalid-name
-            def do_HEAD(self):  # NOQA
-                """Called to serve a HEAD request"""
-                harvested_headers.append(self.headers)
-                self.send_response(200)
-                self.send_header("Content-type", 'text/html; charset=utf8')
-                self.send_header("Content-Length",
-                                 str(len(self.placeholder_content)))
-                self.send_header("Last-Modified", self.date_time_string())
-                self.end_headers()
-
-            # pylint: disable=invalid-name
-            def do_GET(self):  # NOQA
-                """Called to serve a GET request"""
-                self.do_HEAD()
-                self.wfile.write(self.placeholder_content)
-
-            def log_message(self, *args):
-                """Silence the usual logging messages"""
-                pass
-
+        @returns: C{(server, port)}
+        """
         port_found = False
         while not port_found:
             server_address = ('', random.randrange(*USABLE_PORTS))
             try:
                 httpd = http_server.HTTPServer(server_address,
-                                               UAProbingRequestHandler)
+                                               request_handler)
             except socket.error as err:
                 if os.name != 'nt' and err.errno == errno.EADDRINUSE:
                     # Retry if the port is taken (POSIX)
@@ -295,7 +296,21 @@ class UserHeaderGetter(object):
             else:
                 port_found = True
 
-        request_url = 'http://localhost:{:d}'.format(server_address[1])
+        return httpd, server_address[1]
+
+    def _get_uncached(self):  # pylint: disable=no-self-use
+        """Harvest and return all request headers from user default browser."""
+
+        class PreparedRequestHandler(UAProbingRequestHandler):
+            """Subclass used in a closure-like manner
+
+            (To work around the fact that we don't control the lifetime of
+             instances or the calling API but need to pass data back out.)
+            """
+        PreparedRequestHandler.harvested_headers = []
+
+        httpd, port = self._init_httpd_on_random(PreparedRequestHandler)
+        request_url = 'http://localhost:{:d}'.format(port)
 
         # FIXME: Fire off the subprocess/webbrowser call in another thread to
         #        minimize the chance of a race condition. (And block until the
@@ -304,7 +319,7 @@ class UserHeaderGetter(object):
         httpd.handle_request()
         httpd.server_close()  # Supposedly proper shutdown
         httpd.socket.close()  # Required to silence Py3 unclosed socket warning
-        return harvested_headers.pop()
+        return PreparedRequestHandler.harvested_headers.pop()
 
     def get_all(self, headers=None, skip_cache=False):
         """Get all headers which are safe to reuse (ie. not cookies)"""
