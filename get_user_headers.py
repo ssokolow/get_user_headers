@@ -27,6 +27,11 @@ if os.name == 'nt':  # pragma: no cover
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
 USABLE_PORTS = (1024, 65535)
 
+if os.name == 'nt':  # pragma: no cover
+    ERRNO_PORT_BUSY = 10013
+else:
+    ERRNO_PORT_BUSY = errno.EADDRINUSE
+
 # Reasonable guess at an average time for a human to cycle between
 # Ctrl+S, Enter, and clicking "next page", assuming blocking HTTP requests.
 DEFAULT_BASE_DELAY = 3  # seconds
@@ -273,32 +278,24 @@ class UserHeaderGetter(object):
         known = {x.lower(): x for x in self.known_headers}
         return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
 
-    def _init_httpd_on_random(self, request_handler):
+    @staticmethod
+    def _init_httpd_on_random(request_handler):
         """Set up an HTTPServer on a random port.
 
         @returns: C{(server, port)}
         """
-        port_found = False
-        while not port_found:
+        while True:
             server_address = ('', random.randrange(*USABLE_PORTS))
             try:
                 httpd = http_server.HTTPServer(server_address,
                                                request_handler)
             except socket.error as err:
-                if os.name != 'nt' and err.errno == errno.EADDRINUSE:
-                    # Retry if the port is taken (POSIX)
-                    pass
-                elif os.name == 'nt' and err.errno == 10013:
-                    # Retry if the port is taken (Windows)
-                    pass  # pragma: no cover
-                else:
-                    raise  # Error out on other cases
+                if err.errno != ERRNO_PORT_BUSY:
+                    raise  # Retry if the port is taken
             else:
-                port_found = True
+                return httpd, server_address[1]
 
-        return httpd, server_address[1]
-
-    def _get_uncached(self):  # pylint: disable=no-self-use
+    def _get_uncached(self):
         """Harvest and return all request headers from user default browser."""
 
         class PreparedRequestHandler(UAProbingRequestHandler):

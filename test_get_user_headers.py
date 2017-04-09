@@ -111,8 +111,11 @@ def test_timestamp_recent():
     """_timestamp(): round-trips correctly at a typical time"""
     check_timestamp_roundtrip(1468673923)
 
-class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
-    """Tests for UserHeaderGetter"""
+class UserHeaderGetterBase(unittest.TestCase):
+    """Base class for UserHeaderGetter tests.
+
+    (Because cyclomatic complexity tests and JUnit-style testing disagree)
+    """
     test_data = {
         'Foo': 'Bar',
         'baz': 'quux',
@@ -219,6 +222,9 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
         self.assertEqual(before, self.test_headers,
                          "Must not mutate input dict")
         return before, matcher
+
+class UserHeaderGetterTests1(UserHeaderGetterBase):
+    """Tests for UserHeaderGetter"""
 
     @unittest.skipIf(os.name == 'nt', "Test is broken under Windows XP")
     def test_access_denied(self):
