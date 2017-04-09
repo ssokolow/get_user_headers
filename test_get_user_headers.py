@@ -338,6 +338,7 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
                    side_effect=MockBrowser.cls_webbrowser_open):
             self.check_success(self.getter._get_uncached())
 
+    @unittest.skipIf(os.name == 'nt', "Retry isn't implemented for Windows")
     def test_get_uncached_collision(self):
         """UserHeaderGetter: get_uncached() recovers from port collisions"""
         with patch('get_user_headers.random.randrange',

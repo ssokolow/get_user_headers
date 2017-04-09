@@ -284,15 +284,11 @@ class UserHeaderGetter(object):
                 httpd = http_server.HTTPServer(server_address,
                                                UAProbingRequestHandler)
             except socket.error as err:
-                # TODO: Figure
                 if err.errno == errno.EADDRINUSE:
-                    # Retry if the port is taken (POSIX)
-                    pass
-                elif os.name == 'nt' and err.errno == 10013:
-                    # Retry if the port is taken (Windows)
-                    pass  # pragma: no cover
+                    pass  # Retry if the port is taken (POSIX)
                 else:
                     raise  # Error out on other cases
+                    # (Windows apparently doesn't distingush, so don't retry)
             else:
                 port_found = True
 
