@@ -346,6 +346,7 @@ def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     """
     return base_delay * random.uniform(0.5, 1.5)
 
+
 if __name__ == '__main__':  # pragma: no cover
     getter = UserHeaderGetter()
     headers = getter.get_all()
