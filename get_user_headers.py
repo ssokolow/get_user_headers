@@ -350,7 +350,7 @@ def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     (And then err on the slow side of average to further improve the chances
     that humans will get driven away before the bots get caught reliably.)
     """
-    return base_delay * random.uniform(0.5, 1.5)
+    return base_delay * random.SystemRandom().uniform(0.5, 1.5)
 
 
 if __name__ == '__main__':  # pragma: no cover
