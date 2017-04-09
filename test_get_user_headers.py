@@ -308,7 +308,7 @@ class UserHeaderGetterTests(unittest.TestCase):
                     self.fail("Unrecognized header: {}".format(key))
 
     def test_parent_dir_exists(self):
-        """UserHeaderGetter: cache directory already exists"""
+        """UserHeaderGetter: no exception if cache directory already exists"""
         get_user_headers.UserHeaderGetter(self.tempdir)
 
     def test_storage(self):
