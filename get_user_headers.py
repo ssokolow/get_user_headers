@@ -286,7 +286,11 @@ class UserHeaderGetter(object):
             except socket.error as err:
                 # TODO: Figure
                 if err.errno == errno.EADDRINUSE:
-                    pass  # Retry if the port is taken (hopefully portable)
+                    # Retry if the port is taken (POSIX)
+                    pass
+                elif os.name == 'nt' and err.errno == 10013:
+                    # Retry if the port is taken (Windows)
+                    pass  # pragma: no cover
                 else:
                     raise  # Error out on other cases
             else:
