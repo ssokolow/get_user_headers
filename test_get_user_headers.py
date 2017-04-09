@@ -403,7 +403,7 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
         old_locale = locale.setlocale(locale.LC_ALL)
         try:
             locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
-        except ValueError:
+        except ValueError:  # pragma: no cover
             raise unittest.SkipTest("Running under a Python version with "
                 "broken support for calling locale.setlocale() with "
                 "'tr_TR.utf8'. This only breaks the unit test though.")
