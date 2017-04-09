@@ -336,8 +336,7 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
         """UserHeaderGetter: get_uncached() functions properly"""
         with patch('get_user_headers.webbrowser_open', autospec=True,
                    side_effect=MockBrowser.cls_webbrowser_open):
-            results = self.getter._get_uncached()
-            self.check_success(results)
+            self.check_success(self.getter._get_uncached())
 
     def test_get_uncached_collision(self):
         """UserHeaderGetter: get_uncached() recovers from port collisions"""
@@ -354,8 +353,7 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
                     # Throw out the value it'll successfully bind to
                     expect_src(*USABLE_PORTS)
 
-                    results = self.getter._get_uncached()
-                    self.check_success(results)
+                    self.check_success(self.getter._get_uncached())
 
                     # Assert it fell back to the port we expected by checking
                     # whether we're in the same place in the "random" sequence
