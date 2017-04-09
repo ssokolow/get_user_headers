@@ -222,7 +222,6 @@ class UserHeaderGetter(object):
         """
         # TODO: Consider using my titlecase_up() function from game_launcher to
         # prevent acronyms from getting converted back to titlecase.
-        # TODO: Force the C locale before doing this locale-specific operation
         known = {x.lower(): x for x in self.known_headers}
         return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
 

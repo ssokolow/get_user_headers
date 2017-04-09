@@ -13,6 +13,10 @@ matrix:
         language: generic
     allow_failures:
       - python: "nightly"
+addons:
+  apt:
+    packages:
+    - language-pack-tr
 before_install:
   # Test using the Apple-provided Python since it'll be most likely to fail
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then sudo easy_install pip; fi

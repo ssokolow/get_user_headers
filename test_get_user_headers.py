@@ -7,8 +7,8 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import datetime, math, os, platform, random, shutil, sqlite3, sys, tempfile
-import threading, unittest
+import datetime, locale, math, os, platform, random, shutil, sqlite3, sys
+import tempfile, threading, unittest
 
 try:
     from unittest.mock import patch, ANY  # pylint: disable=no-name-in-module
@@ -25,10 +25,6 @@ else:  # pragma: no cover
     urlopen = urllib.request.urlopen  # pylint: disable=no-member
 
 import get_user_headers
-
-# TODO: Make these tests locale-safe
-# (They currently don't force a preferred locale for things like lowercasing
-#  headers, which means they'll fail under Turkish locales.)
 
 def assert_mock_call_count(mock_map):
     """Helper to shut Scrutinizer up about complexity in test_get_*"""
@@ -297,21 +293,32 @@ class UserHeaderGetterTests(unittest.TestCase):
         else:  # pragma: no cover
             self.fail("Unrecognized header: {}".format(key))
 
-    def test_normalize_header_names(self):
-        """UserHeaderGetter: normalize_header_names functions properly"""
-        matcher = [x.lower() for x in self.getter.known_headers]
-        before = self.test_headers.copy()
-        self.getter.normalize_header_names(before)
-
-        self.assertEqual(before, self.test_headers,
-                         "Must not mutate input dict")
-
+    def check_header_names_multicase(self, before, matcher):
+        """Helper to be called once per locale under test"""
         for oper in ('lower', 'upper', 'title'):
             before = {getattr(x, oper)(): y for x, y in before.items()}
             result = self.getter.normalize_header_names(before)
 
             for key in result:
                 self.check_header_name(key, matcher)
+
+    def test_normalize_header_names(self):
+        """UserHeaderGetter: normalize_header_names functions properly"""
+        matcher = [x.lower() for x in self.getter.known_headers]
+        before = self.test_headers.copy()
+
+        self.getter.normalize_header_names(before)
+        self.assertEqual(before, self.test_headers,
+                         "Must not mutate input dict")
+
+        self.check_header_names_multicase(before, matcher)
+
+        old_locale = locale.setlocale(locale.LC_ALL)
+        try:
+            locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
+            self.check_header_names_multicase(before, matcher)
+        finally:
+            locale.setlocale(locale.LC_ALL, old_locale)
 
     def test_parent_dir_exists(self):
         """UserHeaderGetter: no exception if cache directory already exists"""
