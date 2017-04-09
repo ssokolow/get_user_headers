@@ -92,7 +92,9 @@ class UserHeaderGetter(object):
         'DNT',
         'From',              # If you don't like it, fix your browser
         'User-Agent',
-        'X-ATT-Deviceid',    # TODO: Verify proper capitalization of ID
+        'X-ATT-Deviceid',    # Using Wikipedia's capitalization because nobody
+                             # can consistently agree on it and AT&T's site
+                             # gives it all-lowercase, including the X- prefix
         'X-Wap-Profile',
     ])
 
