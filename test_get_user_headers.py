@@ -202,8 +202,8 @@ class UserHeaderGetterTests(unittest.TestCase):
         try:
             class MockDateTime(real_dt):
                 """Helper to mock datetime.datetime.now() for testing"""
-                @classmethod
-                def now(cls, tz=None):  # pylint: disable=invalid-name
+                @staticmethod
+                def now(tz=None):  # pylint: disable=invalid-name
                     """Mock for datetime.datetime.now()"""
                     return real_dt.now(tz) + (
                         self.getter.cache_timeout +

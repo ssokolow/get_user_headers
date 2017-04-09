@@ -287,7 +287,7 @@ class UserHeaderGetter(object):
             else:
                 port_found = True
 
-        request_url = 'http://localhost:%d' % server_address[1]
+        request_url = 'http://localhost:{:d}'.format(server_address[1])
 
         # FIXME: Fire off the subprocess/webbrowser call in another thread to
         #        minimize the chance of a race condition. (And block until the
