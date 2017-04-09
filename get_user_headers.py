@@ -239,17 +239,16 @@ class UserHeaderGetter(object):
                                 [_timestamp(datetime.datetime.now())])
         self.cache_conn.commit()
 
-    def _save_cache(self, headers):
-        """Save given headers to the cache.
+    def _filter_headers(self, headers):
+        """Normalize and filter unsafe keys from a dict of headers
 
-        NOTE: Does not clear existing headers with unlisted keys.
+        (Split out from get_all to please the cyclomatic complexity checker)
         """
-        ts_expires = _timestamp(datetime.datetime.now() + self.cache_timeout)
-        self.cache_conn.executemany("INSERT OR REPLACE INTO user_headers ("
-            "py_version, key, value, expires) VALUES (?, ?, ?, ?)",
-            [[sys.version_info.major, x, y, ts_expires] for x, y in
-             list(headers.items())])
-        self.cache_conn.commit()
+        result = {}
+        for key, value in self.normalize_header_names(headers).items():
+            if key not in self.unsafe_headers:
+                result[key] = value
+        return result
 
     def _get_cache(self):
         """Retrieve cached headers.
@@ -266,34 +265,6 @@ class UserHeaderGetter(object):
             if headers:
                 return dict(headers)
         return None
-
-    def normalize_header_names(self, headers):
-        """Normalize the case of keys in the given dictionary.
-
-        Keys in `known_headers` will be normalized to the standardized casing
-        while unrecognized keys will be fed through ``str.title()``
-        """
-        # TODO: Consider using my titlecase_up() function from game_launcher to
-        # prevent acronyms from getting converted back to titlecase.
-        known = {x.lower(): x for x in self.known_headers}
-        return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
-
-    @staticmethod
-    def _init_httpd_on_random(request_handler):
-        """Set up an HTTPServer on a random port.
-
-        @returns: C{(server, port)}
-        """
-        while True:
-            server_address = ('', random.randrange(*USABLE_PORTS))
-            try:
-                httpd = http_server.HTTPServer(server_address,
-                                               request_handler)
-            except socket.error as err:
-                if err.errno != ERRNO_PORT_BUSY:
-                    raise  # Retry if the port is taken
-            else:
-                return httpd, server_address[1]
 
     def _get_uncached(self):
         """Harvest and return all request headers from user default browser."""
@@ -318,17 +289,6 @@ class UserHeaderGetter(object):
         httpd.socket.close()  # Required to silence Py3 unclosed socket warning
         return PreparedRequestHandler.harvested_headers.pop()
 
-    def _filter_headers(self, headers):
-        """Normalize and filter unsafe keys from a dict of headers
-
-        (Split out from get_all to please the cyclomatic complexity checker)
-        """
-        result = {}
-        for key, value in self.normalize_header_names(headers).items():
-            if key not in self.unsafe_headers:
-                result[key] = value
-        return result
-
     def get_all(self, headers=None, skip_cache=False):
         """Get all headers which are safe to reuse (ie. not cookies)"""
         if not headers:
@@ -347,6 +307,46 @@ class UserHeaderGetter(object):
         return {key: value for key, value
                 in self.normalize_header_names(headers).items()
                 if key in self.safe_headers}
+
+    @staticmethod
+    def _init_httpd_on_random(request_handler):
+        """Set up an HTTPServer on a random port.
+
+        @returns: C{(server, port)}
+        """
+        while True:
+            server_address = ('', random.randrange(*USABLE_PORTS))
+            try:
+                httpd = http_server.HTTPServer(server_address,
+                                               request_handler)
+            except socket.error as err:
+                if err.errno != ERRNO_PORT_BUSY:
+                    raise  # Retry if the port is taken
+            else:
+                return httpd, server_address[1]
+
+    def normalize_header_names(self, headers):
+        """Normalize the case of keys in the given dictionary.
+
+        Keys in `known_headers` will be normalized to the standardized casing
+        while unrecognized keys will be fed through ``str.title()``
+        """
+        # TODO: Consider using my titlecase_up() function from game_launcher to
+        # prevent acronyms from getting converted back to titlecase.
+        known = {x.lower(): x for x in self.known_headers}
+        return {known.get(x.lower(), x.title()): y for x, y in headers.items()}
+
+    def _save_cache(self, headers):
+        """Save given headers to the cache.
+
+        NOTE: Does not clear existing headers with unlisted keys.
+        """
+        ts_expires = _timestamp(datetime.datetime.now() + self.cache_timeout)
+        self.cache_conn.executemany("INSERT OR REPLACE INTO user_headers ("
+            "py_version, key, value, expires) VALUES (?, ?, ?, ?)",
+            [[sys.version_info.major, x, y, ts_expires] for x, y in
+             list(headers.items())])
+        self.cache_conn.commit()
 
 def randomize_delay(base_delay=DEFAULT_BASE_DELAY):
     """Return a time to wait in floating-point seconds to disguise automation.
