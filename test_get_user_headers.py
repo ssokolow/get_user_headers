@@ -7,8 +7,8 @@ from __future__ import (absolute_import, division, print_function,
 __author__ = "Stephan Sokolow (deitarion/SSokolow)"
 __license__ = "MIT"
 
-import datetime, locale, math, os, platform, random, shutil, sqlite3, sys
-import tempfile, threading, unittest
+import datetime, locale, math, os, platform, random, shutil, socket, sqlite3
+import sys, tempfile, threading, unittest
 
 try:
     from unittest.mock import patch, ANY  # pylint: disable=no-name-in-module
@@ -25,6 +25,7 @@ else:  # pragma: no cover
     urlopen = urllib.request.urlopen  # pylint: disable=no-member
 
 import get_user_headers
+from get_user_headers import USABLE_PORTS
 
 def assert_mock_call_count(mock_map):
     """Helper to shut Scrutinizer up about complexity in test_get_*"""
@@ -129,11 +130,23 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
         """Initialize test space on filesystem"""
         self.tempdir = tempfile.mkdtemp(prefix='nosetests-')
         self.getter = get_user_headers.UserHeaderGetter(self.tempdir)
+        self.random_numbers = [6023, 13724, 1120, 38582, 22531, 23561, 33109]
 
     def tearDown(self):
         """Remove test space on filesystem"""
         self.getter.cache_conn.close()  # Needed for Windows
         shutil.rmtree(self.tempdir)
+
+    @staticmethod
+    def block_n_ports(random_provider, port_count):
+        """Helper for test_get_uncached_collision"""
+        blockers = []
+        for _ in range(port_count):
+            sock = socket.socket()
+            sock.bind(('0.0.0.0', random_provider(*USABLE_PORTS)))
+            blockers.append(sock)
+
+        return blockers
 
     def check_unmodified_keys(self, results):
         """Shared code between check_get_all() and check_get_safe()"""
@@ -179,9 +192,23 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
             for key in result:
                 self.check_header_name(key, matcher)
 
-    def predictable_randrange(self):
+    @staticmethod
+    def check_success(results):
+        """Common code for checking successful header retrieval"""
+        assert results.get('User-Agent') == 'test-agent'
+        assert results.get('X-Testing-123') == 'Mock Data'
+
+    def make_predictable_randrange(self):
         """Helper for mocking random.randrange()"""
-        return self.random_numbers.pop()
+        random_numbers = self.random_numbers[:]
+
+        def randrange(start, stop, *args, **kwargs):  # pylint: disable=W0613
+            """Closure to actually implement the mock"""
+            result = random_numbers.pop()
+            assert start <= result < stop
+            return result
+
+        return randrange
 
     def prepare_for_header_name_check(self):
         """Common code for test_normalize_header_names*"""
@@ -310,11 +337,44 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
         with patch('get_user_headers.webbrowser_open', autospec=True,
                    side_effect=MockBrowser.cls_webbrowser_open):
             results = self.getter._get_uncached()
-            assert results.get('User-Agent') == 'test-agent'
-            assert results.get('X-Testing-123') == 'Mock Data'
+            self.check_success(results)
 
-    # TODO: Tests still to be written:
-    # - Server port collision retry in _get_uncached
+    def test_get_uncached_collision(self):
+        """UserHeaderGetter: get_uncached() recovers from port collisions"""
+        with patch('get_user_headers.random.randrange',
+                self.make_predictable_randrange()) as provider:
+            with patch('get_user_headers.webbrowser_open', autospec=True,
+                       side_effect=MockBrowser.cls_webbrowser_open):
+
+                # Tie up the first few ports randrange() will return
+                expect_src = self.make_predictable_randrange()
+                try:
+                    socks = self.block_n_ports(expect_src, 2)  # NOQA
+
+                    # Throw out the value it'll successfully bind to
+                    expect_src(*USABLE_PORTS)
+
+                    results = self.getter._get_uncached()
+                    self.check_success(results)
+
+                    # Assert it fell back to the port we expected by checking
+                    # whether we're in the same place in the "random" sequence
+                    assert provider(*USABLE_PORTS) == expect_src(*USABLE_PORTS)
+                finally:
+                    for sock in socks:
+                        sock.close()
+
+    def test_get_uncached_port_denied(self):
+        """UserHeaderGetter: get_uncached() doesn't swallow non-collisions"""
+        with patch('get_user_headers.webbrowser_open', autospec=True,
+                   side_effect=MockBrowser.cls_webbrowser_open):
+            usable_orig = USABLE_PORTS
+            get_user_headers.USABLE_PORTS = (750, 764)  # Unallocated but <1024
+
+            try:
+                self.assertRaises(socket.error, self.getter._get_uncached)
+            finally:
+                get_user_headers.USABLE_PORTS = usable_orig
 
     @patch('get_user_headers.UserHeaderGetter.normalize_header_names',
            autospec=True)

@@ -25,6 +25,7 @@ if os.name == 'nt':  # pragma: no cover
 
 
 CACHE_DIR = os.path.join(CACHE_ROOT, "ua_cache")
+USABLE_PORTS = (1024, 65535)
 
 # Reasonable guess at an average time for a human to cycle between
 # Ctrl+S, Enter, and clicking "next page", assuming blocking HTTP requests.
@@ -278,7 +279,7 @@ class UserHeaderGetter(object):
 
         port_found = False
         while not port_found:
-            server_address = ('', random.randrange(1024, 65535))
+            server_address = ('', random.randrange(*USABLE_PORTS))
             try:
                 httpd = http_server.HTTPServer(server_address,
                                                UAProbingRequestHandler)
