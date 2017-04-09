@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name="get_user_headers",
-    version="0.1.1",
+    version="0.1.2",
     description="Helper for retrieving identifying headers from the user's"
                 "default browser",
     long_description="""A self-contained module with no extra dependencies
