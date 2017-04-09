@@ -362,6 +362,8 @@ class UserHeaderGetterTests(unittest.TestCase):  # pylint: disable=R0904
                     for sock in socks:
                         sock.close()
 
+    @unittest.skipIf(os.name == 'nt',
+                     "Need a different way to trigger an error on Windows")
     def test_get_uncached_port_denied(self):
         """UserHeaderGetter: get_uncached() doesn't swallow non-collisions"""
         with patch('get_user_headers.webbrowser_open', autospec=True,
