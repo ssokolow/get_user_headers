@@ -318,6 +318,17 @@ class UserHeaderGetter(object):
         httpd.socket.close()  # Required to silence Py3 unclosed socket warning
         return PreparedRequestHandler.harvested_headers.pop()
 
+    def _filter_headers(self, headers):
+        """Normalize and filter unsafe keys from a dict of headers
+
+        (Split out from get_all to please the cyclomatic complexity checker)
+        """
+        result = {}
+        for key, value in self.normalize_header_names(headers).items():
+            if key not in self.unsafe_headers:
+                result[key] = value
+        return result
+
     def get_all(self, headers=None, skip_cache=False):
         """Get all headers which are safe to reuse (ie. not cookies)"""
         if not headers:
@@ -327,9 +338,7 @@ class UserHeaderGetter(object):
             headers = headers or self._get_uncached()
             self._save_cache(headers)
 
-        return {key: value for key, value
-                in self.normalize_header_names(headers).items()
-                if key not in self.unsafe_headers}
+        return self._filter_headers(headers)
 
     def get_safe(self, headers=None, skip_cache=False):
         """Get all headers which should have no or beneficial effects."""
