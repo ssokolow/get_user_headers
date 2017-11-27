@@ -15,14 +15,6 @@ Module for retrieving identifying headers from the user's preferred browser
    :target: https://codeclimate.com/github/ssokolow/get_user_headers
    :alt: Code Climate
 
-.. image:: https://www.quantifiedcode.com/api/v1/project/ab9aeca5645e4bbd875bf57050f76fb1/badge.svg
-   :target: https://www.quantifiedcode.com/app/project/ab9aeca5645e4bbd875bf57050f76fb1
-   :alt: Code issues
-
-.. image:: https://api.codacy.com/project/badge/Grade/864ff2918f1e49f18ce656a3944ffbdf
-   :target: https://www.codacy.com/app/from_github/get_user_headers?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ssokolow/get_user_headers&amp;utm_campaign=Badge_Grade
-   :alt: Codacy
-
 **Unit Tests:**
 
 .. image:: https://travis-ci.org/ssokolow/get_user_headers.svg?branch=master
@@ -112,7 +104,7 @@ and, since hard drive space is relatively cheap and the bots are limited in
 scope, they will never prematurely expire cached data the way actual browsers
 do.
 
-Double-check that your server setup can efficiently returns a
+Double-check that your server setup can efficiently return a
 ``304 Not Modified`` response when faced with headers like
 ``If-Modified-Since`` and ``ETag``. A surprising number of sites are wasting a
 ton of CPU time and bandwidth with *real browsers* that way.
@@ -135,7 +127,7 @@ extra nice.)
 
 **However, don't mistake my kindness for weakness.**
 
-I'm willing to bet that anything that, long **before you make my convenience
+I'm willing to bet anything that, long **before you make my convenience
 bots unfeasible, you'll annoy all of your users into leaving**.
 
 If you start trying to identify bots by their refusal to download supplementary
@@ -157,7 +149,8 @@ anyone wants to write.
 
 If your browser fingerprinting gets good enough to foil that, I'll convert this
 into a framework that allows my bots to easily puppet my actual day-to-day web
-browser to perform their requests.
+browser via a custom extension (so it doesn't announce itself like Selenium
+WebDriver) in order to perform their requests.
 
 **Detect abuse, not bots!**
 
